@@ -1025,7 +1025,7 @@ hr.divider {
 </div>
 
 <!-- IDLE CHOOSE OVERLAY -->
-<div class="overlay hidden" id="idleChooseOv">
+<div class="overlay hidden" id="idleChooseOv" onclick="bgClose(event,'idleChooseOv')">
   <div class="idle-choose">
     <div class="ic-title" id="icTitle">Ort</div>
     <div class="ic-sub">Dein Charakter idlet dort.<br>Du kannst dich frei bewegen – er bleibt.</div>
@@ -1035,15 +1035,17 @@ hr.divider {
 </div>
 
 <!-- EVENT OVERLAY -->
-<div class="overlay hidden" id="eventOv">
+<div class="overlay hidden" id="eventOv" onclick="bgClose(event,'eventOv')">
   <div class="event-card">
     <div class="ev-meta">
       <span id="evIcon" style="font-size:1.2rem"></span>
       <span class="ev-label" id="evLoc"></span>
+      <button class="modal-close" style="margin-left:auto" onclick="hidePanel('eventOv')">✕</button>
     </div>
     <div class="ev-title" id="evTitle"></div>
     <div class="ev-text" id="evText"></div>
     <div id="evOpts"></div>
+    <button style="margin-top:8px;width:100%;background:none;border:none;font-size:.65rem;color:var(--muted);cursor:pointer;padding:6px" onclick="hidePanel('eventOv')">Ignorieren — Event verfällt</button>
   </div>
 </div>
 
