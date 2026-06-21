@@ -1,103 +1,112 @@
 #!/usr/bin/env python3
-"""Slice icons.png (3x3 sprite sheet) into 9 centered, uniform, transparent PNGs."""
+"""Slice sprite sheets into clean, centered, transparent PNGs.
+
+Strategy (robust against the dashed grid lines):
+  1. cut the sheet into grid cells
+  2. flood-fill the navy background to transparent from the cell borders
+  3. keep only the LARGEST connected opaque blob (= the sticker);
+     this discards the leftover dashed-line fragments entirely
+  4. tight-crop to that blob, then center on a uniform square canvas
+"""
 from PIL import Image
 from collections import deque
-import os
+import os, sys
 
-SRC = "icons.png"
-OUT = "icons"
-os.makedirs(OUT, exist_ok=True)
-
-# Row-major mapping to LOCS keys
-NAMES = [
-    ["gym", "library", "park"],
-    ["cafe", "museum", "airport"],
-    ["restaurant", "temple", "university"],
-]
-
-img = Image.open(SRC).convert("RGBA")
-W, H = img.size
-cw, ch = W / 3.0, H / 3.0
-
-INSET = 26       # drop dashed grid border lines
-FUZZ = 52        # bg color tolerance for flood fill
-PAD = 14         # padding around trimmed sticker
-
-def color_dist(a, b):
-    return abs(a[0]-b[0]) + abs(a[1]-b[1]) + abs(a[2]-b[2])
-
-def flood_transparent(im, fuzz):
-    """Flood-fill from all border pixels, making bg-colored pixels transparent.
-    Stops at the bright sticker outline, so dark interior stays opaque."""
-    px = im.load()
-    w, h = im.size
-    # bg reference = average of the 4 corners
+def flood_bg_transparent(im, fuzz=60):
+    px = im.load(); w, h = im.size
     corners = [px[0,0], px[w-1,0], px[0,h-1], px[w-1,h-1]]
     bg = tuple(sum(c[i] for c in corners)//4 for i in range(3))
-    seen = [[False]*w for _ in range(h)]
+    seen = bytearray(w*h)
     q = deque()
-    for x in range(w):
-        q.append((x,0)); q.append((x,h-1))
-    for y in range(h):
-        q.append((0,y)); q.append((w-1,y))
+    for x in range(w): q.append((x,0)); q.append((x,h-1))
+    for y in range(h): q.append((0,y)); q.append((w-1,y))
+    def dist(c): return abs(c[0]-bg[0])+abs(c[1]-bg[1])+abs(c[2]-bg[2])
     while q:
-        x, y = q.popleft()
-        if x<0 or y<0 or x>=w or y>=h or seen[y][x]:
-            continue
-        seen[y][x] = True
+        x,y = q.popleft()
+        if x<0 or y<0 or x>=w or y>=h or seen[y*w+x]: continue
+        seen[y*w+x]=1
         r,g,b,a = px[x,y]
-        if color_dist((r,g,b), bg) <= fuzz:
-            px[x,y] = (r,g,b,0)
-            q.append((x+1,y)); q.append((x-1,y))
-            q.append((x,y+1)); q.append((x,y-1))
+        if dist((r,g,b))<=fuzz:
+            px[x,y]=(r,g,b,0)
+            q.append((x+1,y)); q.append((x-1,y)); q.append((x,y+1)); q.append((x,y-1))
     return im
 
-def bbox_opaque(im):
-    px = im.load()
-    w, h = im.size
-    minx, miny, maxx, maxy = w, h, 0, 0
-    found = False
+def largest_blob_only(im, alpha_min=40):
+    """Keep only the largest connected component of opaque pixels."""
+    px = im.load(); w, h = im.size
+    label = [0]*(w*h)
+    best_id, best_size, best_px = 0, 0, None
+    cur = 0
+    for sy in range(h):
+        for sx in range(w):
+            idx = sy*w+sx
+            if label[idx] or px[sx,sy][3] < alpha_min: continue
+            cur += 1
+            size = 0; comp = []
+            q = deque([(sx,sy)]); label[idx]=cur
+            while q:
+                x,y = q.popleft(); size += 1; comp.append((x,y))
+                for dx,dy in ((1,0),(-1,0),(0,1),(0,-1)):
+                    nx,ny = x+dx,y+dy
+                    if 0<=nx<w and 0<=ny<h:
+                        ni = ny*w+nx
+                        if not label[ni] and px[nx,ny][3]>=alpha_min:
+                            label[ni]=cur; q.append((nx,ny))
+            if size > best_size:
+                best_size, best_id, best_px = size, cur, comp
+    if best_px is None:
+        return im, 0
+    # erase everything not in the largest blob
+    keep = set(best_px)
     for y in range(h):
         for x in range(w):
-            if px[x,y][3] > 24:
-                found = True
-                if x<minx: minx=x
-                if y<miny: miny=y
-                if x>maxx: maxx=x
-                if y>maxy: maxy=y
-    if not found:
-        return None
-    return (minx, miny, maxx+1, maxy+1)
+            if px[x,y][3] and (x,y) not in keep:
+                r,g,b,_ = px[x,y]; px[x,y]=(r,g,b,0)
+    return im, best_size
 
-cells = []
-for r in range(3):
-    for c in range(3):
-        left = int(round(c*cw)) + INSET
-        top = int(round(r*ch)) + INSET
-        right = int(round((c+1)*cw)) - INSET
-        bottom = int(round((r+1)*ch)) - INSET
-        cell = img.crop((left, top, right, bottom))
-        cell = flood_transparent(cell, FUZZ)
-        bb = bbox_opaque(cell)
-        if bb:
-            sticker = cell.crop(bb)
-        else:
-            sticker = cell
-        cells.append((NAMES[r][c], sticker))
+def bbox_opaque(im, alpha_min=40):
+    px=im.load(); w,h=im.size
+    minx,miny,maxx,maxy = w,h,0,0; found=False
+    for y in range(h):
+        for x in range(w):
+            if px[x,y][3]>=alpha_min:
+                found=True
+                minx=min(minx,x); miny=min(miny,y); maxx=max(maxx,x); maxy=max(maxy,y)
+    return (minx,miny,maxx+1,maxy+1) if found else None
 
-# Uniform square canvas = largest sticker dimension + padding
-maxdim = max(max(s.size) for _, s in cells)
-canvas_sz = maxdim + PAD*2
+def slice_sheet(src, cols, rows, names, outdir, out_size=256, pad_frac=0.08, min_area=2000):
+    img = Image.open(src).convert("RGBA")
+    W,H = img.size; cw, ch = W/cols, H/rows
+    os.makedirs(outdir, exist_ok=True)
+    stickers=[]
+    for r in range(rows):
+        for c in range(cols):
+            i = r*cols+c
+            if i>=len(names) or names[i] is None: continue
+            cell = img.crop((int(round(c*cw)),int(round(r*ch)),int(round((c+1)*cw)),int(round((r+1)*ch))))
+            cell = flood_bg_transparent(cell)
+            cell, area = largest_blob_only(cell)
+            if area < min_area:
+                print(f"  (skip empty cell {r},{c})"); continue
+            bb = bbox_opaque(cell)
+            stickers.append((names[i], cell.crop(bb)))
+    maxdim = max(max(s.size) for _,s in stickers)
+    pad = int(maxdim*pad_frac)
+    canvas_sz = maxdim + pad*2
+    for name, st in stickers:
+        canvas = Image.new("RGBA",(canvas_sz,canvas_sz),(0,0,0,0))
+        sw,sh = st.size
+        canvas.paste(st, ((canvas_sz-sw)//2,(canvas_sz-sh)//2), st)
+        canvas.resize((out_size,out_size), Image.LANCZOS).save(os.path.join(outdir,f"{name}.png"))
+        print(f"  {outdir}/{name}.png  (blob {sw}x{sh})")
+    print(f"  -> uniform canvas {canvas_sz}px\n")
 
-for name, sticker in cells:
-    canvas = Image.new("RGBA", (canvas_sz, canvas_sz), (0,0,0,0))
-    sw, sh = sticker.size
-    ox = (canvas_sz - sw)//2
-    oy = (canvas_sz - sh)//2
-    canvas.paste(sticker, (ox, oy), sticker)
-    # downscale to a sensible delivery size
-    final = canvas.resize((256, 256), Image.LANCZOS)
-    final.save(os.path.join(OUT, f"{name}.png"))
-    print(f"  {name}.png  (sticker {sw}x{sh} -> 256x256 canvas)")
+# Location icons: 3x3
+slice_sheet("icons.png", 3, 3,
+    ["gym","library","park","cafe","museum","airport","restaurant","temple","university"],
+    "icons")
 
-print(f"Canvas size {canvas_sz}px, 9 icons written to {OUT}/")
+# Avatar icons: 3 cols x 2 rows, last cell empty
+slice_sheet("avataricons.png", 3, 2,
+    ["nomad","mage","witch","rogue","executive",None],
+    "icons/avatars")

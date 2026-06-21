@@ -945,6 +945,20 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
   box-shadow: 0 0 16px rgba(157,91,255,.4), inset 0 0 12px rgba(255,177,46,.15);
 }
 .av-name { text-shadow: 0 0 12px rgba(255,177,46,.4); }
+.av-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.av-icon.has-pfp { padding: 2px; }
+
+/* ── PFP PICKER ── */
+.pfp-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.pfp-opt {
+  width: 58px; height: 58px; border-radius: 2px; padding: 3px;
+  border: 2px solid var(--border);
+  background: linear-gradient(150deg, var(--s2), var(--s1));
+  cursor: pointer; transition: all .18s; flex-shrink: 0;
+}
+.pfp-opt img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.pfp-opt:hover { border-color: var(--cyan); transform: translateY(-2px); }
+.pfp-opt.sel { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,177,46,.45); }
 
 /* ── BOTTOM BAR — glass + glow on active ── */
 .bot-bar {
@@ -1574,6 +1588,10 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
     </div>
     <div style="display:flex;flex-direction:column;gap:13px">
       <div class="pf-row">
+        <label class="pf-label">Profilbild</label>
+        <div class="pfp-picker" id="pfpPicker"></div>
+      </div>
+      <div class="pf-row">
         <label class="pf-label">Name</label>
         <input class="pf-input" id="pf-name" type="text" placeholder="Dein Name" maxlength="32" oninput="autoSaveProfile()">
       </div>
@@ -1664,7 +1682,7 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
 // ─── STATE ────────────────────────────────────────────────
 // Profile persists in localStorage independent of game state
 const PROFILE_KEY='nomad_profile';
-const DEFAULT_PROFILE={name:'Wanderer',age:null,city:'',nationality:'',motherTongue:'de',mtLocked:false};
+const DEFAULT_PROFILE={name:'Wanderer',age:null,city:'',nationality:'',motherTongue:'de',mtLocked:false,avatar:null};
 let profileData = JSON.parse(localStorage.getItem(PROFILE_KEY)||'null') || {...DEFAULT_PROFILE};
 
 const S = {
@@ -2258,7 +2276,39 @@ function removeFriend(id){
 }
 
 // ─── PROFILE ──────────────────────────────────────────────
+const AVATARS = [
+  {id:'nomad',     name:'Nomade'},
+  {id:'mage',      name:'Magier'},
+  {id:'witch',     name:'Hexe'},
+  {id:'rogue',     name:'Assassine'},
+  {id:'executive', name:'Managerin'},
+];
+function renderPfpPicker(){
+  const el=document.getElementById('pfpPicker');
+  el.innerHTML=AVATARS.map(a=>`
+    <div class="pfp-opt ${profileData.avatar===a.id?'sel':''}" title="${a.name}" onclick="selectPfp('${a.id}')">
+      <img src="icons/avatars/${a.id}.png" alt="${a.name}" draggable="false">
+    </div>`).join('');
+}
+function selectPfp(id){
+  profileData.avatar = (profileData.avatar===id) ? null : id; // tap again to clear
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profileData));
+  renderPfpPicker();
+  updateAvatarHeader();
+}
+function updateAvatarHeader(){
+  const el=document.getElementById('avatarIcon');
+  if(profileData.avatar){
+    el.classList.add('has-pfp');
+    el.innerHTML=`<img src="icons/avatars/${profileData.avatar}.png" alt="" draggable="false">`;
+  } else {
+    el.classList.remove('has-pfp');
+    el.innerHTML='<i data-lucide="user-round"></i>';
+    lucide.createIcons();
+  }
+}
 function openProfile(){
+  renderPfpPicker();
   document.getElementById('pf-name').value   = profileData.name||'';
   document.getElementById('pf-age').value    = profileData.age||'';
   document.getElementById('pf-city').value   = profileData.city||'';
@@ -2280,7 +2330,7 @@ function saveProfile(){
   const nat   = document.getElementById('pf-nation').value;
   const mtEl  = document.querySelector('input[name="pf-lang"]:checked');
   const mt    = mtEl ? mtEl.value : (profileData.motherTongue||'de');
-  profileData = {name, age, city, nationality:nat, motherTongue:mt, mtLocked:!!mt};
+  profileData = {name, age, city, nationality:nat, motherTongue:mt, mtLocked:!!mt, avatar:profileData.avatar||null};
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profileData));
   Object.keys(S.languages).forEach(k => S.languages[k] = (k===mt));
   updateUI(); // also triggers saveState()
@@ -2288,6 +2338,7 @@ function saveProfile(){
 let pfSaveTimer;
 function autoSaveProfile(){ clearTimeout(pfSaveTimer); pfSaveTimer=setTimeout(saveProfile,600); }
 function renderProfileInfo(){
+  updateAvatarHeader();
   document.getElementById('charName').textContent = profileData.name||'Wanderer';
   const parts=[];
   if(profileData.age)         parts.push(`${profileData.age} J.`);
@@ -2783,9 +2834,9 @@ function updateUI(){
   renderProfileInfo();
   updateGoldDisplay();
 
-  // Update avatar background color by level (don't touch the Lucide icon inside)
+  // Update avatar background color by level (only when no custom PFP is set)
   const av=document.getElementById('avatarIcon');
-  av.style.background=LEVEL_COLORS[Math.min(S.level-1,LEVEL_COLORS.length-1)];
+  av.style.background = profileData.avatar ? '' : LEVEL_COLORS[Math.min(S.level-1,LEVEL_COLORS.length-1)];
 
   const tl=document.getElementById('traitList');
   tl.innerHTML=S.traits.length?S.traits.map(t=>`<span class="trait-tag" onclick="showTraitInfo('${t.replace(/'/g,"\\'")}')" style="cursor:pointer">${t}</span>`).join(''):`<span style="font-size:.61rem;color:var(--muted)">Noch keine · max. 10.</span>`;
