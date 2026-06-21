@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevelopYourself</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0d0f1a; --surface:#161929; --card:#1e2235; --border:#2a2f4a;
+  --gold:#c9a84c; --gold-dim:#7a6229; --text:#e2e8f0; --muted:#64748b;
+  --common:#4b5563; --uncommon:#2563eb; --epic:#7c3aed; --legendary:#c9a84c;
+  --green:#22c55e; --red:#ef4444;
+}
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; padding:16px; }
+h1 { text-align:center; font-size:1.35rem; color:var(--gold); letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
+.subtitle { text-align:center; font-size:.72rem; color:var(--muted); margin-bottom:16px; letter-spacing:1px; }
+.layout { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:960px; margin:0 auto; }
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; }
+.sl { font-size:.64rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin:10px 0 6px; }
+hr.d { border:none; border-top:1px solid var(--border); margin:10px 0; }
+
+/* Avatar */
+.av-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.av-icon { width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,#4c1d95,#1e1435); border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0; }
+.av-name { font-size:.95rem; font-weight:700; color:var(--gold); }
+.av-level { font-size:.68rem; color:var(--muted); margin-top:2px; }
+.bar-bg { background:var(--border); border-radius:99px; height:6px; overflow:hidden; margin-top:4px; }
+.bar-fill { height:100%; border-radius:99px; transition:width .6s ease; }
+.xp-fill { background:linear-gradient(90deg,var(--gold-dim),var(--gold)); }
+
+/* Stats */
+.sr { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+.si { font-size:.88rem; width:18px; text-align:center; flex-shrink:0; }
+.sn { font-size:.7rem; width:80px; flex-shrink:0; }
+.sb { flex:1; background:var(--border); border-radius:99px; height:5px; overflow:hidden; }
+.sf { height:100%; border-radius:99px; transition:width .7s; }
+.sv { font-size:.68rem; color:var(--gold); width:22px; text-align:right; flex-shrink:0; }
+
+/* Traits */
+.trait-list { display:flex; flex-wrap:wrap; gap:4px; min-height:18px; }
+.tt { background:var(--card); border:1px solid #3b4a6a; border-radius:20px; padding:2px 7px; font-size:.6rem; color:#93c5fd; }
+
+/* Companion slots */
+.comp-slots { display:flex; gap:7px; }
+.comp-slot { flex:1; background:var(--card); border:1px solid var(--border); border-radius:9px; padding:7px 4px; min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; transition:border-color .2s; }
+.comp-slot:hover { border-color:var(--gold); }
+.comp-slot.c-common   { border-color:var(--common); }
+.comp-slot.c-uncommon { border-color:var(--uncommon); }
+.comp-slot.c-epic     { border-color:var(--epic); }
+.comp-slot.c-legendary{ border-color:var(--legendary); box-shadow:0 0 6px rgba(201,168,76,.25); }
+.cs-icon { font-size:1.25rem; }
+.cs-name { font-size:.55rem; color:var(--text); text-align:center; }
+.cs-empty { font-size:.56rem; color:var(--muted); }
+
+/* Artifacts */
+.art-grid { display:flex; flex-wrap:wrap; gap:4px; min-height:20px; }
+.art-chip { border-radius:6px; padding:2px 7px; font-size:.62rem; display:flex; align-items:center; gap:3px; border:1px solid; position:relative; }
+.art-chip.common   { border-color:var(--common); color:#9ca3af; }
+.art-chip.uncommon { border-color:var(--uncommon); color:#93c5fd; }
+.art-chip.epic     { border-color:var(--epic); color:#c4b5fd; }
+.art-chip.legendary{ border-color:var(--legendary); color:var(--gold); }
+.art-stack { font-size:.55rem; font-weight:700; margin-left:2px; opacity:.8; }
+.art-stack.maxed { color:var(--gold); opacity:1; }
+
+/* Languages */
+.lang-list { display:flex; flex-wrap:wrap; gap:4px; }
+.lang-tag { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:2px 7px; font-size:.63rem; color:var(--muted); transition:all .3s; }
+.lang-tag.known { border-color:#3b82f6; color:#93c5fd; background:#0f1f3d; }
+
+/* Right col */
+.right-col { display:flex; flex-direction:column; gap:12px; }
+.loc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+.loc-btn { background:var(--card); border:1px solid var(--border); border-radius:9px; padding:9px 4px; cursor:pointer; text-align:center; transition:all .2s; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; }
+.loc-btn:hover:not(:disabled) { border-color:var(--gold); background:#1a1c2e; transform:translateY(-1px); }
+.loc-btn:disabled { opacity:.45; cursor:not-allowed; }
+.loc-btn.has-event::after { content:'!'; position:absolute; top:4px; right:5px; background:var(--gold); color:#000; border-radius:50%; width:12px; height:12px; font-size:.56rem; font-weight:700; line-height:12px; text-align:center; }
+.li { font-size:1.25rem; }
+.ln { font-size:.59rem; color:var(--text); }
+.ls { font-size:.54rem; color:var(--muted); }
+
+/* Idle */
+.idle-panel { background:var(--card); border:1px solid var(--gold-dim); border-radius:10px; padding:11px; }
+.idle-loc { font-size:.78rem; font-weight:600; color:var(--gold); margin-bottom:4px; }
+.idle-bar-bg { background:var(--border); border-radius:99px; height:7px; overflow:hidden; margin:5px 0; }
+.idle-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold-dim),var(--gold)); transition:width .5s linear; }
+.idle-timer { font-size:.7rem; color:var(--muted); text-align:right; }
+.idle-cancel { background:none; border:1px solid var(--border); border-radius:6px; color:var(--muted); padding:3px 9px; font-size:.62rem; cursor:pointer; margin-top:5px; }
+.idle-cancel:hover { border-color:var(--red); color:var(--red); }
+
+/* Log */
+.log-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; flex:1; }
+.log-list { list-style:none; }
+.log-item { font-size:.68rem; color:var(--muted); padding:3px 0; border-bottom:1px solid var(--border); display:flex; gap:5px; align-items:flex-start; }
+.log-item:last-child { border-bottom:none; }
+.log-item.fresh { color:var(--text); }
+.lg { color:var(--gold); font-weight:600; }
+.lt { color:#a78bfa; font-weight:600; }
+
+/* Bottom bar */
+.bot-bar { display:flex; gap:7px; max-width:960px; margin:11px auto 0; }
+.bot-btn { flex:1; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px; font-size:.72rem; color:var(--muted); cursor:pointer; transition:all .2s; }
+.bot-btn:hover { border-color:var(--gold); color:var(--gold); }
+.bot-btn span { display:block; font-size:1.1rem; margin-bottom:2px; }
+.bot-btn .badge { display:inline-block; background:var(--red); color:#fff; border-radius:99px; font-size:.55rem; padding:1px 5px; margin-left:4px; }
+
+/* OVERLAYS */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.88); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; backdrop-filter:blur(5px); }
+.overlay.hidden { display:none; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+
+/* Idle choose */
+.idle-choose { background:var(--surface); border:1px solid var(--gold-dim); border-radius:16px; max-width:380px; width:100%; padding:22px; animation:fadeUp .3s ease; text-align:center; }
+.ic-title { font-size:.95rem; font-weight:700; color:var(--gold); margin-bottom:5px; }
+.ic-sub { font-size:.72rem; color:var(--muted); margin-bottom:16px; line-height:1.5; }
+.ic-times { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:10px; }
+.ic-time-btn { background:var(--card); border:1px solid var(--border); border-radius:9px; padding:11px; cursor:pointer; transition:all .2s; }
+.ic-time-btn:hover { border-color:var(--gold); }
+.ic-time-btn .dur { font-size:1rem; font-weight:700; color:var(--gold); }
+.ic-time-btn .rew { font-size:.59rem; color:var(--muted); margin-top:2px; }
+.ic-cancel { background:none; border:1px solid var(--border); border-radius:7px; color:var(--muted); padding:6px 14px; font-size:.7rem; cursor:pointer; }
+
+/* Event */
+.event-card { background:var(--surface); border:1px solid var(--gold-dim); border-radius:16px; max-width:500px; width:100%; padding:22px; animation:fadeUp .3s ease; }
+.ev-meta { display:flex; align-items:center; gap:7px; margin-bottom:9px; }
+.ev-lb { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2px 8px; font-size:.62rem; color:var(--muted); }
+.ev-title { font-size:1rem; font-weight:700; color:var(--gold); margin-bottom:8px; }
+.ev-text { font-size:.78rem; line-height:1.7; color:#cbd5e1; margin-bottom:14px; }
+.opt-btn { display:block; width:100%; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:9px 11px; margin-bottom:6px; cursor:pointer; text-align:left; transition:all .2s; }
+.opt-btn:hover:not(:disabled) { border-color:var(--gold); }
+.opt-btn:disabled { opacity:.35; cursor:not-allowed; }
+.ot { font-size:.76rem; color:var(--text); display:block; }
+.or { font-size:.6rem; color:#f59e0b; margin-top:2px; display:block; }
+
+/* Outcome */
+.outcome-card { background:var(--surface); border:1px solid var(--gold); border-radius:16px; max-width:460px; width:100%; padding:22px; animation:fadeUp .3s ease; }
+.out-text { font-size:.8rem; line-height:1.8; color:#cbd5e1; margin-bottom:14px; border-left:3px solid var(--gold-dim); padding-left:11px; font-style:italic; white-space:pre-line; }
+.out-fx { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:13px; }
+.fx { border-radius:20px; padding:2px 8px; font-size:.65rem; border:1px solid; }
+.fx.pos { border-color:var(--green); color:#4ade80; }
+.fx.neg { border-color:var(--red); color:#f87171; }
+.fx.trait { border-color:#a78bfa; color:#c4b5fd; }
+.fx.comp { border-color:var(--gold); color:var(--gold); }
+.fx.art { border-color:#f59e0b; color:#fbbf24; }
+.cont-btn { display:block; width:100%; background:linear-gradient(135deg,var(--gold-dim),var(--gold)); color:#000; font-weight:700; border:none; border-radius:8px; padding:10px; font-size:.82rem; cursor:pointer; }
+
+/* Collection modal */
+.big-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:740px; width:100%; max-height:88vh; overflow-y:auto; padding:20px; animation:fadeUp .3s ease; }
+.big-modal::-webkit-scrollbar { width:5px; }
+.big-modal::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.modal-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.modal-title { font-size:.95rem; font-weight:700; color:var(--gold); }
+.modal-close { background:none; border:1px solid var(--border); border-radius:7px; color:var(--muted); padding:3px 8px; cursor:pointer; font-size:.72rem; }
+.modal-close:hover { border-color:var(--gold); color:var(--gold); }
+.type-lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin:11px 0 6px; padding-bottom:3px; border-bottom:1px solid var(--border); }
+.coll-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:6px; }
+.cc { background:var(--card); border-radius:8px; padding:8px; text-align:center; border:1px solid; position:relative; }
+.cc.common   { border-color:var(--common); }
+.cc.uncommon { border-color:var(--uncommon); }
+.cc.epic     { border-color:var(--epic); }
+.cc.legendary{ border-color:var(--legendary); box-shadow:0 0 6px rgba(201,168,76,.2); }
+.cc.locked { opacity:.28; filter:grayscale(.9); }
+.cc.owned { cursor:pointer; }
+.cc.owned:hover { transform:translateY(-2px); }
+.cc.is-active { box-shadow:0 0 0 2px var(--gold); }
+.cc .rb { height:2px; border-radius:99px; margin-bottom:5px; }
+.common .rb   { background:var(--common); }
+.uncommon .rb { background:var(--uncommon); }
+.epic .rb     { background:var(--epic); }
+.legendary .rb{ background:var(--legendary); }
+.cc-rl { font-size:.52rem; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+.common .cc-rl   { color:var(--common); }
+.uncommon .cc-rl { color:var(--uncommon); }
+.epic .cc-rl     { color:var(--epic); }
+.legendary .cc-rl{ color:var(--legendary); }
+.cc-ic { font-size:1.4rem; margin-bottom:2px; }
+.cc-nm { font-size:.62rem; font-weight:600; color:var(--text); margin-bottom:2px; }
+.cc-bn { font-size:.56rem; color:var(--gold); margin-bottom:2px; }
+.cc-sp { font-size:.52rem; color:var(--muted); line-height:1.4; }
+.cc-rq { font-size:.52rem; color:#f59e0b; margin-top:2px; }
+.act-star { position:absolute; top:3px; right:4px; font-size:.65rem; }
+
+/* Dungeon modal */
+.dung-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:480px; width:100%; padding:22px; animation:fadeUp .3s ease; }
+.dc { background:var(--card); border-radius:9px; padding:11px; margin-bottom:7px; border:1px solid var(--border); cursor:pointer; transition:all .2s; }
+.dc:hover:not(.running) { border-color:var(--gold); }
+.dc.running { border-color:var(--epic); opacity:.65; cursor:not-allowed; }
+.dc.locked  { opacity:.55; cursor:not-allowed; }
+.loc-btn.has-dungeon::before { content:'⚔'; position:absolute; top:4px; left:5px; font-size:.58rem; color:var(--red); }
+.dc-name { font-size:.82rem; font-weight:600; color:var(--text); margin-bottom:3px; }
+.dc-meta { font-size:.63rem; color:var(--muted); display:flex; gap:10px; margin-bottom:4px; }
+.dc-prob { font-size:.68rem; }
+.dc-prob.hi { color:var(--green); }
+.dc-prob.mi { color:#f59e0b; }
+.dc-prob.lo { color:var(--red); }
+
+/* Friends modal */
+.friends-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:500px; width:100%; padding:22px; animation:fadeUp .3s ease; }
+.friend-section { margin-bottom:16px; }
+.nearby-player { background:var(--card); border:1px solid var(--border); border-radius:9px; padding:10px; margin-bottom:6px; }
+.np-header { display:flex; align-items:center; gap:9px; margin-bottom:7px; }
+.np-icon { font-size:1.4rem; width:36px; height:36px; background:var(--surface); border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.np-name { font-size:.8rem; font-weight:600; color:var(--text); }
+.np-lang { font-size:.63rem; color:var(--muted); margin-top:1px; }
+.np-bar-wrap { margin-bottom:5px; }
+.np-bar-lbl { font-size:.6rem; color:var(--muted); margin-bottom:2px; display:flex; justify-content:space-between; }
+.np-bar-bg { background:var(--border); border-radius:99px; height:5px; overflow:hidden; }
+.np-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#1d4ed8,#3b82f6); transition:width .4s; }
+.np-btn { background:none; border:1px solid var(--border); border-radius:6px; color:var(--muted); padding:4px 10px; font-size:.63rem; cursor:pointer; transition:all .2s; }
+.np-btn:hover { border-color:#3b82f6; color:#93c5fd; }
+.np-btn:disabled { opacity:.4; cursor:not-allowed; }
+.friend-card { background:var(--card); border:1px solid var(--green); border-radius:9px; padding:9px; margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+.friend-card .fc-icon { font-size:1.3rem; }
+.fc-name { font-size:.78rem; font-weight:600; color:var(--text); }
+.fc-lang { font-size:.62rem; color:var(--muted); margin-top:1px; }
+.fc-lang-learn { font-size:.6rem; color:var(--gold); margin-top:2px; }
+
+/* Toast */
+#toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:var(--card); border:1px solid var(--gold); border-radius:8px; padding:8px 16px; font-size:.74rem; color:var(--gold); transition:transform .35s,opacity .35s; opacity:0; pointer-events:none; z-index:2000; text-align:center; max-width:340px; }
+#toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+.gps-btn { display:block; width:100%; background:linear-gradient(135deg,#1e2235,#2a2f4a); border:1px solid var(--gold); border-radius:7px; color:var(--gold); padding:6px; font-size:.7rem; cursor:pointer; margin-bottom:6px; transition:all .2s; }
+.gps-status { font-size:.6rem; color:var(--muted); text-align:center; margin-bottom:7px; }
+.gps-loc-suggestions { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; min-height:0; }
+.gps-loc-btn { background:var(--card); border:1px solid var(--gold); border-radius:7px; color:var(--gold); padding:4px 10px; font-size:.7rem; cursor:pointer; transition:all .2s; }
+.gps-loc-btn:hover { background:var(--gold); color:#000; }
+</style>
+</head>
+<body>
+<h1>⚔ DevelopYourself</h1>
+<p class="subtitle">Dein Leben. Dein Charakter.</p>
+
+<div class="layout">
+  <!-- LEFT: Avatar -->
+  <div class="panel">
+    <div class="av-header">
+      <div class="av-icon" id="avatarIcon">🧙</div>
+      <div style="flex:1">
+        <div class="av-name">Wanderer</div>
+        <div class="av-level" id="avatarLevel">Level 1 · 0/50 XP</div>
+        <div class="bar-bg"><div class="bar-fill xp-fill" id="xpBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="sl">Eigenschaften</div>
+    <div class="sr"><span class="si">💪</span><span class="sn">Kraft</span><div class="sb"><div class="sf" id="bar-strength" style="width:0%;background:linear-gradient(90deg,#7f1d1d,#ef4444)"></div></div><span class="sv" id="val-strength">0</span></div>
+    <div class="sr"><span class="si">📚</span><span class="sn">Wissen</span><div class="sb"><div class="sf" id="bar-knowledge" style="width:0%;background:linear-gradient(90deg,#1e3a5f,#3b82f6)"></div></div><span class="sv" id="val-knowledge">0</span></div>
+    <div class="sr"><span class="si">🏃</span><span class="sn">Ausdauer</span><div class="sb"><div class="sf" id="bar-endurance" style="width:0%;background:linear-gradient(90deg,#14532d,#22c55e)"></div></div><span class="sv" id="val-endurance">0</span></div>
+    <div class="sr"><span class="si">🤝</span><span class="sn">Soziales</span><div class="sb"><div class="sf" id="bar-social" style="width:0%;background:linear-gradient(90deg,#4c1d95,#a855f7)"></div></div><span class="sv" id="val-social">0</span></div>
+    <div class="sr"><span class="si">🎨</span><span class="sn">Kreativität</span><div class="sb"><div class="sf" id="bar-creativity" style="width:0%;background:linear-gradient(90deg,#78350f,#f59e0b)"></div></div><span class="sv" id="val-creativity">0</span></div>
+    <div class="sr"><span class="si">🧘</span><span class="sn">Achtsamkeit</span><div class="sb"><div class="sf" id="bar-mindfulness" style="width:0%;background:linear-gradient(90deg,#155e75,#06b6d4)"></div></div><span class="sv" id="val-mindfulness">0</span></div>
+
+    <hr class="d">
+    <div class="sl">🏷 Charakterzüge</div>
+    <div class="trait-list" id="traitList"><span style="font-size:.62rem;color:var(--muted)">Noch keine.</span></div>
+
+    <hr class="d">
+    <div class="sl">🐾 Begleiter <span style="color:var(--muted);font-size:.56rem">(<span id="ownedSm">0</span>/41 · max 3 aktiv)</span></div>
+    <div class="comp-slots" id="compSlots"></div>
+    <button class="gps-btn" style="margin-top:6px;font-size:.66rem" onclick="openCollection()">🗂 Sammlung öffnen</button>
+
+    <hr class="d">
+    <div class="sl">⚗️ Artefakte <span style="color:var(--muted);font-size:.56rem">(<span id="artSm">0</span> · stackbar bis ×10)</span></div>
+    <div class="art-grid" id="artGrid"><span style="font-size:.62rem;color:var(--muted)">Noch keine gefunden.</span></div>
+
+    <hr class="d">
+    <div class="sl">🌍 Sprachen</div>
+    <div class="lang-list">
+      <div class="lang-tag known">🇩🇪 Deutsch</div>
+      <div class="lang-tag" id="lang-en">🇬🇧 Englisch</div>
+      <div class="lang-tag" id="lang-fr">🇫🇷 Französisch</div>
+      <div class="lang-tag" id="lang-es">🇪🇸 Spanisch</div>
+      <div class="lang-tag" id="lang-ja">🇯🇵 Japanisch</div>
+      <div class="lang-tag" id="lang-ar">🇸🇦 Arabisch</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-col">
+    <div class="panel">
+      <div class="sl">📍 Wo bist du?</div>
+      <button class="gps-btn" id="gpsBtn">📡 Echten Standort scannen (OpenStreetMap)</button>
+      <div class="gps-status" id="gpsStatus">– GPS → erkennt Orte in 250m Umkreis –</div>
+      <div class="gps-loc-suggestions" id="gpsLocSuggestions"></div>
+      <div id="idleWrap" style="display:none;margin-bottom:9px">
+        <div class="idle-panel">
+          <div class="idle-loc" id="idleLocName">⏳</div>
+          <div class="idle-bar-bg"><div class="idle-bar-fill" id="idleBar" style="width:0%"></div></div>
+          <div class="idle-timer" id="idleTimer">–</div>
+          <button class="idle-cancel" onclick="cancelIdle()">✕ Abbrechen (50% Belohnung)</button>
+        </div>
+      </div>
+      <div class="loc-grid">
+        <button class="loc-btn" data-loc="gym"        onclick="clickLoc('gym')">       <span class="li">🏋️</span><span class="ln">Fitnessstudio</span><span class="ls">Kraft · Ausdauer</span></button>
+        <button class="loc-btn" data-loc="library"    onclick="clickLoc('library')">   <span class="li">📚</span><span class="ln">Bibliothek</span><span class="ls">Wissen</span></button>
+        <button class="loc-btn" data-loc="park"       onclick="clickLoc('park')">      <span class="li">🌳</span><span class="ln">Park</span><span class="ls">Ausdauer · Achtsamkeit</span></button>
+        <button class="loc-btn" data-loc="cafe"       onclick="clickLoc('cafe')">      <span class="li">☕</span><span class="ln">Café</span><span class="ls">Soziales · Kreativ</span></button>
+        <button class="loc-btn" data-loc="museum"     onclick="clickLoc('museum')">    <span class="li">🏛️</span><span class="ln">Museum</span><span class="ls">Wissen · Kreativ</span></button>
+        <button class="loc-btn" data-loc="airport"    onclick="clickLoc('airport')">   <span class="li">✈️</span><span class="ln">Flughafen</span><span class="ls">Ausdauer · Soziales</span></button>
+        <button class="loc-btn" data-loc="restaurant" onclick="clickLoc('restaurant')"><span class="li">🍽️</span><span class="ln">Restaurant</span><span class="ls">Soziales · Kreativ</span></button>
+        <button class="loc-btn" data-loc="temple"     onclick="clickLoc('temple')">    <span class="li">🕌</span><span class="ln">Tempel</span><span class="ls">Achtsamkeit · Wissen</span></button>
+        <button class="loc-btn" data-loc="university" onclick="clickLoc('university')"><span class="li">🎓</span><span class="ln">Universität</span><span class="ls">Wissen · Soziales</span></button>
+      </div>
+    </div>
+    <div class="log-panel">
+      <div class="sl">📜 Erlebnisse</div>
+      <ul class="log-list" id="logList">
+        <li class="log-item"><span>🌟</span><span>Dein Abenteuer beginnt. Wähle einen Ort und starte eine Idle-Session.</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="bot-bar">
+  <button class="bot-btn" onclick="openDungeons()"><span>⚔️</span>Dungeons</button>
+  <button class="bot-btn" onclick="openCollection()"><span>🐾</span>Begleiter</button>
+  <button class="bot-btn" onclick="openFriends()"><span>👥</span>Freunde <span class="badge" id="friendBadge" style="display:none">!</span></button>
+  <button class="bot-btn" onclick="openMarket()"><span>🏪</span>Marktplatz</button>
+</div>
+
+<!-- IDLE CHOOSE -->
+<div class="overlay hidden" id="idleChooseOv">
+  <div class="idle-choose">
+    <div class="ic-title" id="icTitle">Ort</div>
+    <div class="ic-sub">Dein Charakter idlet dort.<br>Du kannst dich frei bewegen – er bleibt.</div>
+    <div class="ic-times" id="icTimes"></div>
+    <button class="ic-cancel" onclick="close('idleChooseOv')">Abbrechen</button>
+  </div>
+</div>
+
+<!-- EVENT -->
+<div class="overlay hidden" id="eventOv">
+  <div class="event-card">
+    <div class="ev-meta"><span id="evIcon" style="font-size:1.2rem"></span><span class="ev-lb" id="evLoc"></span></div>
+    <div class="ev-title" id="evTitle"></div>
+    <div class="ev-text" id="evText"></div>
+    <div id="evOpts"></div>
+  </div>
+</div>
+
+<!-- OUTCOME -->
+<div class="overlay hidden" id="outcomeOv">
+  <div class="outcome-card">
+    <div class="out-text" id="outText"></div>
+    <div class="out-fx" id="outFx"></div>
+    <button class="cont-btn" onclick="closeOutcome()">Weiter →</button>
+  </div>
+</div>
+
+<!-- COLLECTION -->
+<div class="overlay hidden" id="collOv" onclick="bgClose(event,'collOv')">
+  <div class="big-modal">
+    <div class="modal-hdr">
+      <div class="modal-title">🐾 Begleiter (<span id="collCount">0</span>/41)</div>
+      <button class="modal-close" onclick="close('collOv')">✕</button>
+    </div>
+    <div style="font-size:.65rem;color:var(--muted);margin-bottom:10px">Aktiv: <span id="activeCount">0</span>/3 · Klick = aktivieren/deaktivieren · Begleiter nicht stackbar</div>
+    <div id="collContent"></div>
+  </div>
+</div>
+
+<!-- DUNGEONS -->
+<div class="overlay hidden" id="dungOv" onclick="bgClose(event,'dungOv')">
+  <div class="dung-modal">
+    <div class="modal-hdr">
+      <div class="modal-title">⚔️ Dungeons</div>
+      <button class="modal-close" onclick="close('dungOv')">✕</button>
+    </div>
+    <div style="font-size:.68rem;color:var(--muted);margin-bottom:12px">Idle-Kampf. Keine Eingabe. Stats = Siegchance.</div>
+    <div id="dungList"></div>
+  </div>
+</div>
+
+<!-- FRIENDS -->
+<div class="overlay hidden" id="friendsOv" onclick="bgClose(event,'friendsOv')">
+  <div class="friends-modal">
+    <div class="modal-hdr">
+      <div class="modal-title">👥 Freunde & Nähe</div>
+      <button class="modal-close" onclick="close('friendsOv')">✕</button>
+    </div>
+    <div style="font-size:.68rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
+      Je länger du neben jemandem mit der App stehst, desto höher die Freundschaftschance.<br>
+      App muss nicht offen sein. Freunde können dir Sprachen beibringen.
+    </div>
+    <div class="friend-section">
+      <div class="sl">Spieler in der Nähe (simuliert)</div>
+      <div id="nearbyList"></div>
+    </div>
+    <div class="friend-section">
+      <div class="sl">Deine Freunde (<span id="friendCount">0</span>)</div>
+      <div id="friendList"><span style="font-size:.68rem;color:var(--muted)">Noch keine Freundschaften geknüpft.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MARKET -->
+<div class="overlay hidden" id="marketOv" onclick="bgClose(event,'marketOv')">
+  <div class="dung-modal">
+    <div class="modal-hdr">
+      <div class="modal-title">🏪 Marktplatz</div>
+      <button class="modal-close" onclick="close('marketOv')">✕</button>
+    </div>
+    <div style="font-size:.78rem;color:var(--muted);line-height:1.8;padding:11px;background:var(--card);border-radius:9px">
+      <div style="color:var(--gold);font-weight:600;margin-bottom:7px">🚧 Kommt mit Backend</div>
+      • Begleiter & Artefakte zwischen Spielern handelbar<br>
+      • Zahlung in Schattengold (In-Game) oder € direkt<br>
+      • Plattform-Provision: 12%<br>
+      • Nur gefundene Items handelbar — keine pay-to-win Packs<br>
+      • Seltene Begleiter können echten Marktwert entwickeln
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────
+const S = {
+  xp:0, level:1,
+  stats:{ strength:0,knowledge:0,endurance:0,social:0,creativity:0,mindfulness:0 },
+  traits:[], languages:{ en:false,fr:false,es:false,ja:false,ar:false },
+  owned:new Set(), active:[],
+  artifacts:{},  // id → {count, ...ARTIFACT_DATA}  — stackable to 10
+  seen:new Set(),
+  idle:null,
+  dungeons:[],
+  friends:[],    // {id,name,icon,lang}
+  lastLoc:null,  // locId of last completed idle — required to enter nearby dungeon
+};
+const XP_PER_LEVEL=50, STAT_MAX=100, ART_MAX_STACK=10;
+
+// ─── LOCATIONS ────────────────────────────────────────────
+const LOCS = {
+  gym:        {name:'Fitnessstudio',icon:'🏋️',gains:{strength:4,endurance:2},xp:8, artPool:['eisenherz','kraftband']},
+  library:    {name:'Bibliothek',  icon:'📚',gains:{knowledge:5},           xp:8, artPool:['wissenssplitter','altes_buch']},
+  park:       {name:'Park',        icon:'🌳',gains:{endurance:3,mindfulness:3},xp:6,artPool:['natur_stein','wanderstab']},
+  cafe:       {name:'Café',        icon:'☕',gains:{social:4,creativity:2},  xp:6, artPool:['charisma_amulett','goldene_tasse']},
+  museum:     {name:'Museum',      icon:'🏛️',gains:{knowledge:3,creativity:4},xp:7,artPool:['kreativfeder','altes_relikt']},
+  airport:    {name:'Flughafen',   icon:'✈️',gains:{endurance:3,social:2},  xp:10,artPool:['wanderer_kompass','reisepass_shard']},
+  restaurant: {name:'Restaurant',  icon:'🍽️',gains:{social:3,creativity:2},  xp:5, artPool:['charisma_amulett','goldene_tasse']},
+  temple:     {name:'Tempel',      icon:'🕌',gains:{mindfulness:5,knowledge:2},xp:7,artPool:['meditationsstein','heiliger_splitter']},
+  university: {name:'Universität', icon:'🎓',gains:{knowledge:4,social:3},  xp:8, artPool:['wissenssplitter','gelehrten_ring']},
+};
+
+// Prototype timers in seconds (real game: minutes)
+const IDLE_TIMES = [
+  {label:'30 Min',ms:25*1000, mult:1.0, tidx:0, reward:'Basis'},
+  {label:'1 Std', ms:50*1000, mult:1.8, tidx:1, reward:'+80% Boni'},
+  {label:'2 Std', ms:100*1000,mult:3.2, tidx:2, reward:'+220% · Artefakt↑'},
+  {label:'4 Std', ms:200*1000,mult:6.0, tidx:3, reward:'+500% · Max Chance'},
+];
+
+// ─── ARTIFACTS (stackable, permanent stat boost per stack) ─
+const ART = {
+  eisenherz:        {n:'Eisenherz',         r:'common',   i:'❤️‍🔥',b:{strength:3}},
+  kraftband:        {n:'Kraftband',          r:'uncommon', i:'💪',  b:{strength:5,endurance:2}},
+  wissenssplitter:  {n:'Wissenssplitter',    r:'common',   i:'🔷',  b:{knowledge:3}},
+  altes_buch:       {n:'Altes Buch',         r:'uncommon', i:'📖',  b:{knowledge:5,mindfulness:1}},
+  natur_stein:      {n:'Naturstein',         r:'common',   i:'🪨',  b:{endurance:3}},
+  wanderstab:       {n:'Wanderstab',         r:'uncommon', i:'🪄',  b:{endurance:4,strength:2}},
+  charisma_amulett: {n:'Charisma-Amulett',  r:'uncommon', i:'🔮',  b:{social:4,creativity:2}},
+  goldene_tasse:    {n:'Goldene Tasse',      r:'common',   i:'🏆',  b:{social:3}},
+  kreativfeder:     {n:'Kreativfeder',       r:'uncommon', i:'🪶',  b:{creativity:5}},
+  altes_relikt:     {n:'Altes Relikt',       r:'epic',     i:'🗿',  b:{knowledge:4,creativity:4}},
+  wanderer_kompass: {n:'Wanderer-Kompass',   r:'uncommon', i:'🧭',  b:{endurance:4,social:2}},
+  reisepass_shard:  {n:'Reisepass-Splitter', r:'epic',     i:'✈️',  b:{endurance:6,social:3}},
+  meditationsstein: {n:'Meditationsstein',   r:'uncommon', i:'🪬',  b:{mindfulness:5}},
+  heiliger_splitter:{n:'Heiliger Splitter',  r:'epic',     i:'✨',  b:{mindfulness:6,knowledge:3}},
+  gelehrten_ring:   {n:'Gelehrten-Ring',     r:'uncommon', i:'💍',  b:{knowledge:4,social:3}},
+  runen_fragment:   {n:'Runen-Fragment',     r:'epic',     i:'🔯',  b:{strength:2,knowledge:2,endurance:2,social:2,creativity:2,mindfulness:2}},
+  uraltes_relikt:   {n:'Uraltes Relikt',     r:'legendary',i:'🌌',  b:{strength:5,knowledge:5,endurance:5,social:5,creativity:5,mindfulness:5}},
+};
+
+// Artifact drop rates per idle session (very rare, scales with duration)
+// Base = 30-min session, multiplied by IDLE_TIMES.mult
+const ART_BASE = { common:.008, uncommon:.0018, epic:.0003, legendary:.00004 };
+
+// ─── COMPANION DATA ───────────────────────────────────────
+const CD = {
+  labrador:        {n:'Labrador',          t:'dog',  i:'🐕',r:'common',   loc:['park','cafe'],         req:{},                      b:{social:3},              sp:'Soziales-Events öfter positiv'},
+  border_collie:   {n:'Border Collie',     t:'dog',  i:'🐕',r:'uncommon', loc:['park','university'],   req:{knowledge:10},          b:{knowledge:2,endurance:1},sp:'Lernbonus'},
+  husky:           {n:'Husky',             t:'dog',  i:'🐕',r:'uncommon', loc:['park','airport'],      req:{endurance:12},          b:{endurance:4},           sp:'Weitenwanderer'},
+  dackel:          {n:'Dackel',            t:'dog',  i:'🐕',r:'common',   loc:['cafe','restaurant'],   req:{},                      b:{creativity:2},          sp:'Chaosgeist'},
+  schaeferhund:    {n:'Schäferhund',       t:'dog',  i:'🐕',r:'uncommon', loc:['park','gym'],          req:{strength:10},           b:{strength:3},            sp:'Beschützer'},
+  golden_retriever:{n:'Golden Retriever',  t:'dog',  i:'🐕',r:'common',   loc:['park'],                req:{},                      b:{social:2,mindfulness:1},sp:'Stimmungsaufheller'},
+  dobermann:       {n:'Dobermann',         t:'dog',  i:'🐕',r:'epic',     loc:['gym'],                 req:{strength:20},           b:{strength:2},            sp:'Einschüchterung'},
+  pudel:           {n:'Pudel',             t:'dog',  i:'🐕',r:'uncommon', loc:['museum','cafe'],       req:{creativity:8},          b:{creativity:2,knowledge:1},sp:'Ästhetik'},
+  beagle:          {n:'Beagle',            t:'dog',  i:'🐕',r:'common',   loc:['park','library'],      req:{},                      b:{endurance:2,knowledge:1},sp:'Spürnase'},
+  wolfshund:       {n:'Irischer Wolfshund',t:'dog',  i:'🐕',r:'epic',     loc:['park'],                req:{endurance:25,strength:15},b:{strength:3,endurance:2},sp:'Heldenmut'},
+  hauskatze:       {n:'Hauskatze',         t:'cat',  i:'🐈',r:'common',   loc:['cafe','restaurant'],   req:{},                      b:{mindfulness:2},         sp:'Ruhe'},
+  schwarze_katze:  {n:'Schwarze Katze',    t:'cat',  i:'🐈‍⬛',r:'uncommon',loc:['temple'],             req:{},                      b:{},                      sp:'+10% Outcome-Glück'},
+  perser:          {n:'Perser',            t:'cat',  i:'🐈',r:'common',   loc:['cafe','museum'],       req:{},                      b:{creativity:3},          sp:'Dekadenz'},
+  siamkatze:       {n:'Siamkatze',         t:'cat',  i:'🐈',r:'common',   loc:['cafe'],                req:{},                      b:{social:2},              sp:'Redselig'},
+  maine_coon:      {n:'Maine Coon',        t:'cat',  i:'🐈',r:'uncommon', loc:['park','library'],      req:{mindfulness:8},         b:{strength:1,mindfulness:2},sp:'Waldgeist'},
+  bengalkatze:     {n:'Bengalkatze',       t:'cat',  i:'🐈',r:'epic',     loc:['park'],                req:{endurance:15,creativity:10},b:{endurance:2,creativity:1},sp:'Wildnis'},
+  sphynx:          {n:'Sphynx',            t:'cat',  i:'🐈',r:'epic',     loc:['museum','library'],    req:{knowledge:18},          b:{knowledge:3},           sp:'Altes Wissen'},
+  norwegische_wk:  {n:'Norweg. Waldkatze', t:'cat',  i:'🐈',r:'uncommon', loc:['park'],                req:{endurance:10},          b:{endurance:3,mindfulness:1},sp:'Sturm-Resistent'},
+  russisch_blau:   {n:'Russisch Blau',     t:'cat',  i:'🐈',r:'epic',     loc:['temple'],              req:{mindfulness:15},        b:{mindfulness:3},         sp:'Stille Präsenz'},
+  abessinier:      {n:'Abessinier',        t:'cat',  i:'🐈',r:'uncommon', loc:['museum'],              req:{creativity:12},         b:{creativity:3,endurance:1},sp:'Neugier'},
+  rabe:            {n:'Rabe',              t:'bird', i:'🦅',r:'epic',     loc:['temple','library'],    req:{knowledge:14},          b:{knowledge:3},           sp:'Kartensicht'},
+  eule:            {n:'Eule',              t:'bird', i:'🦉',r:'epic',     loc:['library'],             req:{knowledge:12,mindfulness:10},b:{knowledge:2,mindfulness:2},sp:'Nacht-Aktiv'},
+  wanderfalke:     {n:'Wanderfalke',       t:'bird', i:'🦅',r:'uncommon', loc:['airport','park'],      req:{endurance:14},          b:{endurance:2,strength:1},sp:'Schneller Pfad'},
+  papagei:         {n:'Papagei',           t:'bird', i:'🦜',r:'uncommon', loc:['airport','cafe'],      req:{social:10},             b:{social:3},              sp:'Sprachtalent'},
+  adler:           {n:'Steinadler',        t:'bird', i:'🦅',r:'legendary',loc:['airport'],             req:{strength:20,endurance:20},b:{strength:2,endurance:2},sp:'Herrschaft'},
+  tauben:          {n:'Taubenpaar',        t:'bird', i:'🕊️',r:'common',   loc:['cafe','university'],  req:{},                      b:{social:1},              sp:'Bote'},
+  pfau:            {n:'Pfau',              t:'bird', i:'🦚',r:'epic',     loc:['museum','park'],       req:{creativity:15},         b:{creativity:4,social:1}, sp:'Aufmerksamkeit'},
+  kolibri:         {n:'Kolibri',           t:'bird', i:'🐦',r:'legendary',loc:['park'],               req:{creativity:20,mindfulness:20},b:{creativity:2,mindfulness:2},sp:'Seltenheit'},
+  araber_pferd:    {n:'Arabisches Pferd',  t:'mount',i:'🐴',r:'uncommon', loc:['park','airport'],      req:{endurance:18},          b:{endurance:4},           sp:'Reichweite'},
+  esel:            {n:'Esel',              t:'mount',i:'🫏',r:'common',   loc:['park','restaurant'],   req:{},                      b:{strength:2},            sp:'Sturheit'},
+  kamel:           {n:'Kamel',             t:'mount',i:'🐪',r:'epic',     loc:['airport'],             req:{endurance:20},          b:{endurance:5},           sp:'Wüsten-Meister'},
+  lama:            {n:'Lama',              t:'mount',i:'🦙',r:'uncommon', loc:['park','museum'],       req:{creativity:10},         b:{creativity:2,endurance:2},sp:'Bergbewohner'},
+  yak:             {n:'Yak',               t:'mount',i:'🐂',r:'epic',     loc:['park'],                req:{strength:18,endurance:18},b:{strength:4},           sp:'Bergfestung'},
+  przewalski:      {n:'Wildpferd',         t:'mount',i:'🐴',r:'epic',     loc:['park'],                req:{endurance:22},          b:{endurance:3,strength:2},sp:'Ungezähmt'},
+  rentier:         {n:'Rentier',           t:'mount',i:'🦌',r:'legendary',loc:['park'],               req:{mindfulness:18,endurance:18},b:{mindfulness:3,endurance:2},sp:'Winter-Magie'},
+  elch:            {n:'Elch',              t:'mount',i:'🫎',r:'epic',     loc:['park'],                req:{endurance:16,strength:12},b:{endurance:3,strength:1},sp:'Wald-Herrscher'},
+  fuchs:           {n:'Fuchs',             t:'exotic',i:'🦊',r:'uncommon',loc:['park'],               req:{creativity:12},         b:{creativity:3},          sp:'Schläue'},
+  otter:           {n:'Otter',             t:'exotic',i:'🦦',r:'uncommon',loc:['park','cafe'],         req:{social:10},             b:{social:3},              sp:'Verspieltheit'},
+  dachs:           {n:'Dachs',             t:'exotic',i:'🦡',r:'uncommon',loc:['park','library'],      req:{strength:12},           b:{strength:2},            sp:'Hartnäckigkeit'},
+  hirsch:          {n:'Hirsch',            t:'exotic',i:'🦌',r:'epic',    loc:['park'],                req:{mindfulness:14},        b:{mindfulness:3},         sp:'Wald-Stille'},
+  wolf:            {n:'Wolf',              t:'exotic',i:'🐺',r:'legendary',loc:['park'],              req:{strength:25,endurance:25},b:{strength:4},           sp:'Rudel'},
+};
+
+// Companion drop rates per idle session — very rare
+const COMP_RATES = { common:.003, uncommon:.0006, epic:.00008, legendary:.000008 };
+
+const TYPE_LABELS = { dog:'🐕 Hunde', cat:'🐈 Katzen', bird:'🦅 Vögel', mount:'🐴 Reittiere', exotic:'🦊 Exoten' };
+const RARITY_ORD  = { common:0, uncommon:1, epic:2, legendary:3 };
+
+// ─── NEARBY PLAYERS (simulated) ───────────────────────────
+const NEARBY = [
+  {id:'p1', name:'Lena M.',    icon:'👩', lang:'fr', langName:'Französisch', flag:'🇫🇷', proximity:0, friend:false},
+  {id:'p2', name:'Carlos R.',  icon:'👨', lang:'es', langName:'Spanisch',    flag:'🇪🇸', proximity:0, friend:false},
+  {id:'p3', name:'Yuki T.',    icon:'👩', lang:'ja', langName:'Japanisch',   flag:'🇯🇵', proximity:0, friend:false},
+  {id:'p4', name:'Ahmad K.',   icon:'👨', lang:'ar', langName:'Arabisch',    flag:'🇸🇦', proximity:0, friend:false},
+  {id:'p5', name:'Sam B.',     icon:'🧑', lang:'en', langName:'Englisch',    flag:'🇬🇧', proximity:0, friend:false},
+];
+// Friendship threshold: 100 proximity points. Each "simulate" click = 15-35 pts.
+// Language learning: each friend gives 0.3% chance per idle session to learn their language.
+
+// ─── DAILY DUNGEON PLACEMENT ──────────────────────────────
+function seededRand(seed) {
+  let s = seed >>> 0;
+  return () => { s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0; s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0; return (s >>> 0) / 0xffffffff; };
+}
+function getDailyLocSeed() {
+  const d = new Date(); const str = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  let h = 0; for(let i=0;i<str.length;i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+  return h >>> 0;
+}
+// Computed once at load; stays fixed until page refresh across midnight
+const DAILY_LOC_SEED = getDailyLocSeed();
+function computeDailyDungeonLocs() {
+  const rand = seededRand(DAILY_LOC_SEED);
+  const locIds = Object.keys(LOCS);
+  // Each dungeon gets a random location — can overlap (two dungeons at same spot)
+  return DUNGEONS_DEF.map(() => locIds[Math.floor(rand() * locIds.length)]);
+}
+
+// ─── DUNGEONS ─────────────────────────────────────────────
+const DUNGEONS_DEF = [
+  {id:'d1',name:'Verlassene Kellerei',icon:'🍾',diff:'Einfach', sw:{strength:.4,endurance:.4,knowledge:.2},  base:.65,ms:30*1000, xp:15,ac:.12,ap:['eisenherz','natur_stein'],         cc:.008},
+  {id:'d2',name:'Ruine des alten Turms',icon:'🏚️',diff:'Mittel',sw:{strength:.5,endurance:.3,mindfulness:.2},base:.5, ms:60*1000, xp:30,ac:.20,ap:['kraftband','altes_buch'],            cc:.02},
+  {id:'d3',name:'Katakomben',          icon:'💀',diff:'Schwer', sw:{strength:.6,endurance:.3,knowledge:.1},  base:.35,ms:120*1000,xp:60,ac:.35,ap:['altes_relikt','reisepass_shard'],    cc:.035},
+  {id:'d4',name:'Schattenriss-Spalt',  icon:'🌑',diff:'Episch', sw:{strength:.4,knowledge:.3,mindfulness:.3},base:.2, ms:240*1000,xp:120,ac:.55,ap:['runen_fragment','heiliger_splitter'],cc:.07},
+  {id:'d5',name:'Der ewige Nebel',     icon:'🌫️',diff:'Legendär',sw:{strength:.3,knowledge:.3,endurance:.2,mindfulness:.2},base:.08,ms:480*1000,xp:300,ac:.75,ap:['uraltes_relikt','runen_fragment'],cc:.13},
+];
+// Merge daily location into each dungeon definition
+const DUNGEON_LOCS = computeDailyDungeonLocs();
+const DUNGEONS = DUNGEONS_DEF.map((d,i) => ({...d, locId: DUNGEON_LOCS[i]}));
+
+// ─── EVENTS ───────────────────────────────────────────────
+const EVENTS = [
+  {id:'ev1',locs:['temple'],icon:'🕯️',loc_label:'Tempel',title:'Der alte Mann auf den Stufen',
+   text:'Ein alter Mann murmelt leise. In seinen Händen: ein zerbrochenes Amulett.',
+   options:[
+     {text:'Ich spreche ihn an.',req:{social:8},req_label:'Soziales 8',
+      outcomes:[{w:60,text:'Er lächelt. Eine Stunde vergeht.',fx:{knowledge:3,mindfulness:2},xp:8,trait:'Geduldiger Zuhörer'},{w:40,text:'Er drückt dir das Amulett in die Hand.',fx:{knowledge:5},xp:10,trait:'Auserwählt',art:'meditationsstein'}]},
+     {text:'Ich sitze still neben ihn.',req:{mindfulness:6},req_label:'Achtsamkeit 6',
+      outcomes:[{w:100,text:'Keine Worte. Als du aufstehst, ist etwas anders.',fx:{mindfulness:4},xp:7,trait:'Stille Kraft'}]},
+     {text:'Ich gehe weiter.',req:{},outcomes:[{w:70,text:'Er ist verschwunden als du dich umdrehst.',fx:{},xp:0},{w:30,text:'Das Amulett liegt auf dem Boden. Du nimmst es nicht.',fx:{},xp:0,trait:'Der/Die der weiterging'}]},
+   ]},
+  {id:'ev2',locs:['gym'],icon:'🥊',loc_label:'Fitnessstudio',title:'Die Herausforderung',
+   text:'"Du trainierst seit Wochen hier." Er streckt die Hand aus. "Armdrücken. Jetzt."',
+   options:[
+     {text:'Ich nehme an.',req:{strength:12},req_label:'Kraft 12',
+      outcomes:[{w:55,text:'Du gewinnst. "Komm morgen wieder."',fx:{strength:5},xp:12,trait:'Unbesiegbar',comp:'schaeferhund'},{w:45,text:'Knapp verloren. "Nächste Woche."',fx:{strength:3,endurance:2},xp:8,trait:'Würdevoll verloren'}]},
+     {text:'Ich schlage gemeinsames Training vor.',req:{social:6},req_label:'Soziales 6',
+      outcomes:[{w:100,text:'Er lacht. Ihr trainiert zusammen.',fx:{strength:3,social:3},xp:9,trait:'Eigener Weg'}]},
+     {text:'Ich ignoriere ihn.',req:{},outcomes:[{w:100,text:'Du trainierst allein.',fx:{endurance:2},xp:3}]},
+   ]},
+  {id:'ev3',locs:['park'],icon:'🐕',loc_label:'Park',title:'Der verlorene Hund',
+   text:'Ein kleiner Hund. Kein Halsband. Er zittert.',
+   options:[
+     {text:'Ich suche den Besitzer.',req:{},outcomes:[{w:70,text:'Ein weinendes Kind. Der Blick bleibt.',fx:{social:4,mindfulness:2},xp:10,trait:'Mitfühlend',comp:'golden_retriever'},{w:30,text:'Tierheim. Du schläfst schlecht.',fx:{mindfulness:-1},xp:5,trait:'Pragmatisch'}]},
+     {text:'Kurz spielen.',req:{},outcomes:[{w:100,text:'Fünf Minuten Freude.',fx:{mindfulness:3},xp:4,comp:'beagle'}]},
+     {text:'Tierschutznummer.',req:{knowledge:8},req_label:'Wissen 8',outcomes:[{w:100,text:'Professionell, effizient.',fx:{knowledge:2},xp:5}]},
+   ]},
+  {id:'ev4',locs:['library'],icon:'📜',loc_label:'Bibliothek',title:'Der Brief zwischen den Seiten',
+   text:'Zwischen Seite 112 und 113: ein handgeschriebener Brief von 1987. Nie abgeholt.',
+   options:[
+     {text:'Ich lese ihn.',req:{},outcomes:[{w:60,text:'"Komm am Samstag." Niemand kam.',fx:{knowledge:2,mindfulness:2},xp:6,trait:'Stiller Zeuge'},{w:40,text:'Koordinaten. Du schreibst sie ab.',fx:{knowledge:4},xp:8,trait:'Detektiv-Instinkt'}]},
+     {text:'Bibliothekarin.',req:{social:5},req_label:'Soziales 5',outcomes:[{w:100,text:'"Gott... diesen Namen kenne ich."',fx:{knowledge:5,social:3},xp:11,trait:'Verbindungsstifter',comp:'eule'}]},
+     {text:'Zurücklegen.',req:{mindfulness:8},req_label:'Achtsamkeit 8',outcomes:[{w:100,text:'Vielleicht findet ihn jemand dem er bestimmt ist.',fx:{mindfulness:4},xp:7,trait:'Weiser Respekt'}]},
+   ]},
+  {id:'ev5',locs:['airport'],icon:'✈️',loc_label:'Flughafen',title:'Der Reisende ohne Ziel',
+   text:'"Wohin fliegen Sie? Ich nehme jeden Flug."',
+   options:[
+     {text:'Ich höre zu.',req:{social:6},req_label:'Soziales 6',outcomes:[{w:70,text:'"47 Länder. Bereust du es? – Täglich. Und trotzdem: nie."',fx:{mindfulness:4,social:2},xp:10,trait:'Nomaden-Blut',comp:'tauben'},{w:30,text:'Ein verlassener Leuchtturm.',fx:{knowledge:3,creativity:2},xp:6,trait:'Fernweh'}]},
+     {text:'Ich nehme spontan den nächsten Flug.',req:{endurance:20,mindfulness:15},req_label:'Ausdauer 20 & Achtsamkeit 15',outcomes:[{w:100,text:'Irgendwas in dir wacht auf.',fx:{endurance:8,mindfulness:6,social:4},xp:25,trait:'Echter Wanderer',lang:'en',comp:'wanderfalke'}]},
+     {text:'Ich gehe.',req:{},outcomes:[{w:100,text:'Sein Lächeln bleibt.',fx:{endurance:1},xp:2}]},
+   ]},
+  {id:'ev6',locs:['museum'],icon:'🖼️',loc_label:'Museum',title:'Das Porträt ohne Namen',
+   text:'Kein Name. Die Augen folgen dir.',
+   options:[
+     {text:'Ich forsche nach.',req:{knowledge:10},req_label:'Wissen 10',outcomes:[{w:60,text:'Maria Voss, 1743. Sie existierte.',fx:{knowledge:6},xp:10,trait:'Spurensucher',comp:'rabe'},{w:40,text:'Nichts.',fx:{knowledge:3,mindfulness:3},xp:6}]},
+     {text:'Ich zeichne es nach.',req:{creativity:10},req_label:'Kreativität 10',outcomes:[{w:100,text:'"Besser als das Original."',fx:{creativity:6},xp:11,trait:'Künstlerauge',comp:'pfau'}]},
+     {text:'Ich gehe weiter.',req:{},outcomes:[{w:100,text:'Die Augen folgen kurz.',fx:{creativity:1},xp:1}]},
+   ]},
+  {id:'ev7',locs:['park'],icon:'🌙',loc_label:'Park – Abends',title:'Das Licht zwischen den Bäumen',
+   text:'Zwischen zwei Eichen: Feuer. Stimmen. Gelächter.',
+   options:[
+     {text:'Ich gehe näher.',req:{},outcomes:[{w:50,text:'"Setz dich." Du gehst als Freund.',fx:{social:6,creativity:2},xp:12,trait:'Offen für Fremdes',comp:'fuchs'},{w:30,text:'Ihr 40. Hochzeitstag hier.',fx:{social:4,mindfulness:4},xp:10},{w:20,text:'Sie winken dich weg.',fx:{mindfulness:2},xp:3}]},
+     {text:'Aus der Ferne.',req:{},outcomes:[{w:100,text:'Irgendetwas Wärmendes bleibt.',fx:{mindfulness:3,creativity:1},xp:4}]},
+   ]},
+];
+
+// ─── IDLE ─────────────────────────────────────────────────
+let idleIv = null;
+
+function clickLoc(locId) {
+  if(S.idle){ toast('⏳ Dein Charakter idlet noch!'); return; }
+  const loc = LOCS[locId];
+  document.getElementById('icTitle').textContent = `${loc.icon} ${loc.name}`;
+  const c = document.getElementById('icTimes'); c.innerHTML='';
+  IDLE_TIMES.forEach((t,i) => {
+    const b=document.createElement('button'); b.className='ic-time-btn';
+    b.innerHTML=`<div class="dur">${t.label}</div><div class="rew">${t.reward}</div>`;
+    b.onclick=()=>{ close('idleChooseOv'); startIdle(locId,i); };
+    c.appendChild(b);
+  });
+  document.getElementById('idleChooseOv').classList.remove('hidden');
+}
+
+function startIdle(locId, ti) {
+  const loc=LOCS[locId], t=IDLE_TIMES[ti];
+  S.idle={locId, locName:loc.name, locIcon:loc.icon, endTime:Date.now()+t.ms, totalMs:t.ms, mult:t.mult, tidx:t.tidx};
+  document.querySelectorAll('.loc-btn').forEach(b=>b.disabled=true);
+  document.getElementById('idleWrap').style.display='block';
+  document.getElementById('idleLocName').textContent=`${loc.icon} ${loc.name} – ${t.label}`;
+  addLog(loc.icon,`Idle gestartet: <span class="lg">${loc.name} – ${t.label}</span>`);
+  updateIdleBar();
+  idleIv=setInterval(updateIdleBar,500);
+  updateEventIndicators();
+}
+
+function updateIdleBar() {
+  if(!S.idle) return;
+  const now=Date.now(), elapsed=now-(S.idle.endTime-S.idle.totalMs);
+  const pct=Math.min(100,elapsed/S.idle.totalMs*100);
+  document.getElementById('idleBar').style.width=pct+'%';
+  const rem=Math.max(0,S.idle.endTime-now);
+  document.getElementById('idleTimer').textContent=rem>0?`noch ${Math.ceil(rem/1000)}s`:'Fertig!';
+  if(now>=S.idle.endTime) finishIdle(false);
+}
+
+function cancelIdle() { if(!S.idle) return; const e=Date.now()-(S.idle.endTime-S.idle.totalMs); finishIdle(true,Math.min(1,e/S.idle.totalMs)*0.5); }
+
+function finishIdle(partial=false, ratio=1) {
+  clearInterval(idleIv); idleIv=null;
+  const idle=S.idle; S.idle=null;
+  document.getElementById('idleWrap').style.display='none';
+  document.querySelectorAll('.loc-btn').forEach(b=>b.disabled=false);
+  S.lastLoc = idle.locId; // player "is here" — enables nearby dungeons
+  const loc=LOCS[idle.locId], mult=partial?idle.mult*ratio:idle.mult, chips=[];
+
+  // Stats
+  for(const[k,v] of Object.entries(loc.gains)){
+    const gain=Math.max(1,Math.round(v*mult)), before=S.stats[k];
+    S.stats[k]=Math.min(STAT_MAX,S.stats[k]+gain);
+    const a=S.stats[k]-before; if(a>0) chips.push({label:`+${a} ${sl(k)}`,type:'pos'});
+  }
+  addXP(Math.round(loc.xp*mult));
+
+  // Artifact
+  const artRates=ART_BASE, poolIds=loc.artPool;
+  for(const rar of ['legendary','epic','uncommon','common']){
+    const rate=artRates[rar]*mult;
+    if(Math.random()<rate){
+      const candidates=poolIds.filter(id=>ART[id]?.r===rar);
+      // Also allow epic/legendary global drops at lower chance
+      if(rar==='epic')   candidates.push(...['runen_fragment'].filter(id=>!candidates.includes(id)));
+      if(rar==='legendary') candidates.push('uraltes_relikt');
+      if(!candidates.length) continue;
+      const artId=candidates[Math.floor(Math.random()*candidates.length)];
+      const a=ART[artId]; if(!a) continue;
+      const existing=S.artifacts[artId];
+      if(existing && existing.count>=ART_MAX_STACK){ chips.push({label:`${a.i} ${a.n} (voll gestackt!)`,type:'art'}); }
+      else {
+        if(existing){ existing.count++; }
+        else { S.artifacts[artId]={count:1,...a}; }
+        // Apply bonus
+        for(const[k,v] of Object.entries(a.b)) S.stats[k]=Math.min(STAT_MAX,S.stats[k]+v);
+        const cnt=S.artifacts[artId].count;
+        chips.push({label:`${a.i} ${a.n} ×${cnt} (+${Object.entries(a.b).map(([k,v])=>v+' '+sl(k)).join(', ')})`,type:'art'});
+      }
+      break;
+    }
+  }
+
+  // Companion (very rare)
+  const compCands=Object.entries(CD).filter(([id,c])=>!S.owned.has(id)&&c.loc.includes(idle.locId)&&meetsReq(c.req));
+  for(const rar of ['legendary','epic','uncommon','common']){
+    const rate=COMP_RATES[rar]*(partial?0.5:1);
+    const ofR=compCands.filter(([,c])=>c.r===rar);
+    if(ofR.length&&Math.random()<rate){
+      const[id,c]=ofR[Math.floor(Math.random()*ofR.length)];
+      S.owned.add(id); chips.push({label:`Begleiter: ${c.i} ${c.n} (${c.r})`,type:'comp'});
+      toast(`🎉 Begleiter: ${c.i} ${c.n}!`);
+      break;
+    }
+  }
+
+  // Language from friends
+  S.friends.forEach(f=>{
+    if(!S.languages[f.lang]&&Math.random()<0.003*mult){
+      S.languages[f.lang]=true;
+      chips.push({label:`Sprache gelernt von ${f.name}: ${f.flag}`,type:'pos'});
+      toast(`🌍 ${f.flag} Sprache gelernt: ${f.langName}!`);
+      addLog('🌍',`Sprache von Freund ${f.name} gelernt: <span class="lg">${f.langName}</span>`);
+    }
+  });
+
+  updateUI();
+  const txt=`${loc.icon} ${idle.locName}${partial?' – vorzeitig abgebrochen':' – abgeschlossen'}.\n${partial?'50% Belohnung.':'Volle Belohnung.'}`;
+  showOutcome(txt, chips);
+
+  // Event after idle
+  const evAvail=EVENTS.filter(e=>e.locs.includes(idle.locId)&&!S.seen.has(e.id));
+  if(!partial&&evAvail.length&&Math.random()<0.7) setTimeout(()=>showEv(evAvail[Math.floor(Math.random()*evAvail.length)]),1800);
+  updateEventIndicators();
+}
+
+// ─── PROXIMITY / FRIENDS ─────────────────────────────────
+function openFriends(){ renderFriends(); document.getElementById('friendsOv').classList.remove('hidden'); }
+
+function simulateProximity(pid) {
+  const p=NEARBY.find(x=>x.id===pid); if(!p||p.friend) return;
+  const pts=15+Math.random()*20; // 15-35 points per click
+  p.proximity=Math.min(100,p.proximity+pts);
+  if(p.proximity>=100&&!p.friend){
+    p.friend=true; p.proximity=100;
+    S.friends.push({id:p.id,name:p.name,icon:p.icon,lang:p.lang,langName:p.langName,flag:p.flag});
+    toast(`🤝 Neue Freundschaft: ${p.icon} ${p.name}! Spricht ${p.flag} ${p.langName}.`);
+    addLog('🤝',`Neue Freundschaft: <span class="lg">${p.name}</span> – spricht ${p.flag} ${p.langName}`);
+    updateFriendBadge();
+    updateUI();
+  }
+  renderFriends();
+}
+
+function renderFriends(){
+  const nl=document.getElementById('nearbyList'); nl.innerHTML='';
+  NEARBY.forEach(p=>{
+    const div=document.createElement('div'); div.className='nearby-player';
+    const isFriend=p.friend;
+    div.innerHTML=`<div class="np-header">
+      <div class="np-icon">${p.icon}</div>
+      <div>
+        <div class="np-name">${p.name} ${isFriend?'<span style="color:var(--green);font-size:.65rem">✓ Freund</span>':''}</div>
+        <div class="np-lang">${p.flag} spricht ${p.langName}</div>
+      </div>
+    </div>
+    <div class="np-bar-wrap">
+      <div class="np-bar-lbl"><span>Nähe-Zeit</span><span>${Math.round(p.proximity)}%</span></div>
+      <div class="np-bar-bg"><div class="np-bar-fill" style="width:${p.proximity}%"></div></div>
+    </div>
+    <button class="np-btn" onclick="simulateProximity('${p.id}')" ${isFriend?'disabled':''}>
+      ${isFriend?'✓ Befreundet':'+ Zeit in der Nähe simulieren'}
+    </button>`;
+    nl.appendChild(div);
+  });
+  const fl=document.getElementById('friendList');
+  fl.innerHTML=S.friends.length
+    ?S.friends.map(f=>`<div class="friend-card"><div class="fc-icon">${f.icon}</div><div><div class="fc-name">${f.name}</div><div class="fc-lang">${f.flag} ${f.langName}</div><div class="fc-lang-learn">✨ Chance: Sprache beim nächsten Idle lernen</div></div></div>`).join('')
+    :'<span style="font-size:.68rem;color:var(--muted)">Noch keine Freundschaften.</span>';
+  document.getElementById('friendCount').textContent=S.friends.length;
+}
+
+function updateFriendBadge(){
+  const b=document.getElementById('friendBadge');
+  b.style.display=S.friends.length?'inline':'none';
+}
+
+// ─── DUNGEONS ─────────────────────────────────────────────
+function openDungeons(){ renderDungeons(); document.getElementById('dungOv').classList.remove('hidden'); }
+function renderDungeons(){
+  const l=document.getElementById('dungList'); l.innerHTML='';
+  // Header: reset info
+  const today=new Date(); const resetStr=`${String(today.getHours()).padStart(2,'0')}:${String(today.getMinutes()).padStart(2,'0')}`;
+  const hdr=document.createElement('div');
+  hdr.style.cssText='font-size:.6rem;color:var(--muted);margin-bottom:10px;padding:6px 8px;background:var(--card);border-radius:7px;line-height:1.6';
+  hdr.innerHTML=`🗓️ Positionen heute täglich zufällig. Nächste Rotation: <strong style="color:var(--gold)">Mitternacht</strong><br>📍 Dein aktueller Ort: <strong style="color:var(--gold)">${S.lastLoc?LOCS[S.lastLoc].icon+' '+LOCS[S.lastLoc].name:'<span style="color:var(--red)">Noch kein Ort besucht</span>'}</strong>`;
+  l.appendChild(hdr);
+  DUNGEONS.forEach(d=>{
+    const running=S.dungeons.find(x=>x.id===d.id);
+    const pow=Object.entries(d.sw).reduce((s,[k,w])=>s+S.stats[k]*w,0);
+    const pct=Math.min(95,Math.round((d.base+(pow/100)*0.4)*100));
+    const cls=pct>60?'hi':pct>35?'mi':'lo';
+    const loc=LOCS[d.locId];
+    const nearby=S.lastLoc===d.locId;
+    const locked=!nearby&&!running;
+    const div=document.createElement('div');
+    div.className='dc'+(running?' running':locked?' locked':'');
+    div.innerHTML=`<div class="dc-name">${d.icon} ${d.name}</div>
+      <div class="dc-meta"><span>${d.diff}</span><span>+${d.xp} XP</span></div>
+      <div style="font-size:.62rem;margin-bottom:3px">
+        📍 Heute bei: <strong style="color:${nearby?'var(--green)':'var(--gold)'}">${loc.icon} ${loc.name}</strong>
+        ${nearby?'<span style="color:var(--green);margin-left:5px">✓ Du bist hier</span>':''}
+      </div>
+      <div class="dc-prob ${locked?'lo':cls}">${locked?`🔒 Zuerst ${loc.icon} ${loc.name} besuchen`:`Siegchance: ${pct}%`}</div>
+      ${running?`<div style="font-size:.62rem;color:var(--muted);margin-top:3px">⚔️ läuft... (${Math.ceil(Math.max(0,running.end-Date.now())/1000)}s)</div>`:''}`;
+    if(!locked&&!running) div.onclick=()=>enterDungeon(d);
+    l.appendChild(div);
+  });
+}
+function enterDungeon(d){
+  if(S.idle){ toast('⏳ Charakter idlet!'); return; }
+  if(S.dungeons.find(x=>x.id===d.id)) return;
+  if(S.lastLoc!==d.locId){
+    const loc=LOCS[d.locId];
+    toast(`📍 Zuerst ${loc.icon} ${loc.name} besuchen!`);
+    return;
+  }
+  S.dungeons.push({id:d.id,end:Date.now()+d.ms});
+  addLog(d.icon,`Dungeon: <span class="lg">${d.name}</span> – Charakter kämpft idle…`);
+  toast(`⚔️ ${d.name} – Idle-Kampf läuft!`);
+  close('dungOv');
+  setTimeout(()=>resolveDungeon(d),d.ms);
+}
+function resolveDungeon(d){
+  S.dungeons=S.dungeons.filter(x=>x.id!==d.id);
+  const pow=Object.entries(d.sw).reduce((s,[k,w])=>s+S.stats[k]*w,0);
+  const ok=Math.random()<Math.min(.95,d.base+(pow/100)*0.4);
+  const chips=[];
+  if(ok){
+    addXP(d.xp); chips.push({label:`+${d.xp} XP`,type:'pos'});
+    if(Math.random()<d.ac){
+      const aid=d.ap[Math.floor(Math.random()*d.ap.length)], a=ART[aid];
+      if(a){
+        const ex=S.artifacts[aid];
+        if(!ex||ex.count<ART_MAX_STACK){
+          if(ex) ex.count++; else S.artifacts[aid]={count:1,...a};
+          for(const[k,v] of Object.entries(a.b)) S.stats[k]=Math.min(STAT_MAX,S.stats[k]+v);
+          chips.push({label:`${a.i} ${a.n} ×${S.artifacts[aid].count}`,type:'art'});
+        }
+      }
+    }
+    if(Math.random()<d.cc){
+      const cands=Object.entries(CD).filter(([id])=>!S.owned.has(id));
+      if(cands.length){ const[id,c]=cands[Math.floor(Math.random()*cands.length)]; S.owned.add(id); chips.push({label:`${c.i} ${c.n} (${c.r})`,type:'comp'}); }
+    }
+  }
+  updateUI();
+  showOutcome(ok?`⚔️ ${d.icon} ${d.name}\n\nSieg! Dein Charakter hat bestanden.`:`💀 ${d.icon} ${d.name}\n\nNiederlage. Keine Beute. Aber du weißt nun was fehlt.`,chips.length?chips:[{label:ok?'Sieg':'Niederlage',type:ok?'pos':'neg'}]);
+  addLog(d.icon,`Dungeon ${ok?'✅':'❌'}: <span class="lg">${d.name}</span>`);
+}
+
+// ─── EVENTS ───────────────────────────────────────────────
+let curEv=null;
+function showEv(ev){
+  curEv=ev;
+  document.getElementById('evIcon').textContent=ev.icon;
+  document.getElementById('evLoc').textContent=ev.loc_label;
+  document.getElementById('evTitle').textContent=ev.title;
+  document.getElementById('evText').textContent=ev.text;
+  const c=document.getElementById('evOpts'); c.innerHTML='';
+  ev.options.forEach((o,i)=>{
+    const b=document.createElement('button'); b.className='opt-btn';
+    const can=meetsReq(o.req); b.disabled=!can;
+    b.innerHTML=`<span class="ot">${o.text}</span>${o.req_label&&!can?`<span class="or">🔒 ${o.req_label}</span>`:''}`;
+    b.onclick=()=>chooseOpt(i); c.appendChild(b);
+  });
+  document.getElementById('eventOv').classList.remove('hidden');
+}
+function chooseOpt(i){
+  close('eventOv');
+  const o=curEv.options[i], out=wPick(o.outcomes), chips=[];
+  for(const[k,v] of Object.entries(out.fx||{})){
+    const b=S.stats[k]; S.stats[k]=Math.max(0,Math.min(STAT_MAX,S.stats[k]+v));
+    const a=S.stats[k]-b; if(a!==0) chips.push({label:`${a>0?'+':''}${a} ${sl(k)}`,type:a>=0?'pos':'neg'});
+  }
+  if(out.xp) addXP(out.xp);
+  if(out.trait&&!S.traits.includes(out.trait)){ S.traits.push(out.trait); chips.push({label:out.trait,type:'trait'}); }
+  if(out.comp&&!S.owned.has(out.comp)){ S.owned.add(out.comp); const c=CD[out.comp]; chips.push({label:`${c.i} ${c.n}`,type:'comp'}); }
+  if(out.art){ const a=ART[out.art]; if(a){ const ex=S.artifacts[out.art]; if(!ex||ex.count<ART_MAX_STACK){ if(ex)ex.count++;else S.artifacts[out.art]={count:1,...a}; for(const[k,v] of Object.entries(a.b))S.stats[k]=Math.min(STAT_MAX,S.stats[k]+v); chips.push({label:`${a.i} ${a.n}`,type:'art'}); } } }
+  if(out.lang){ S.languages[out.lang]=true; chips.push({label:'Sprache gelernt',type:'pos'}); }
+  S.seen.add(curEv.id); updateUI(); showOutcome(out.text,chips);
+  addLog(curEv.icon,`<strong>${curEv.title}</strong> — ${out.text.substring(0,48)}…`);
+}
+
+// ─── COLLECTION ───────────────────────────────────────────
+function openCollection(){ renderColl(); document.getElementById('collOv').classList.remove('hidden'); }
+function renderColl(){
+  const types=['dog','cat','bird','mount','exotic']; let html='';
+  for(const type of types){
+    const entries=Object.entries(CD).filter(([,c])=>c.t===type).sort((a,b)=>RARITY_ORD[a[1].r]-RARITY_ORD[b[1].r]);
+    html+=`<div class="type-lbl">${TYPE_LABELS[type]}</div><div class="coll-grid">`;
+    for(const[id,c] of entries){
+      const owned=S.owned.has(id),isAct=S.active.includes(id);
+      const req=Object.entries(c.req||{}).map(([k,v])=>`${sl(k)} ${v}`).join(', ');
+      html+=`<div class="cc ${c.r} ${owned?'owned':'locked'} ${isAct?'is-active':''}" onclick="${owned?`toggleAct('${id}')`:''}" title="${c.n}">
+        <div class="rb"></div>${isAct?'<div class="act-star">⭐</div>':''}
+        <div class="cc-rl">${c.r}</div><div class="cc-ic">${c.i}</div>
+        <div class="cc-nm">${c.n}</div>
+        <div class="cc-bn">${Object.entries(c.b||{}).map(([k,v])=>`+${v} ${sl(k)}`).join(' ')||'–'}</div>
+        <div class="cc-sp">${c.sp}</div>
+        ${!owned?`<div class="cc-rq">${req?'🔒 '+req:'📍 '+c.loc.map(l=>LOCS[l]?.name||l).join('/')}</div>`:''}
+      </div>`;
+    }
+    html+='</div>';
+  }
+  document.getElementById('collContent').innerHTML=html;
+  document.getElementById('collCount').textContent=S.owned.size;
+  document.getElementById('activeCount').textContent=S.active.length;
+}
+function toggleAct(id){
+  if(S.active.includes(id)){ S.active=S.active.filter(x=>x!==id); }
+  else { if(S.active.length>=3){ toast('⚠️ Max 3!'); return; } S.active.push(id); }
+  updateUI(); renderColl();
+}
+
+// ─── OUTCOME ──────────────────────────────────────────────
+function showOutcome(text,chips){
+  document.getElementById('outText').textContent=text;
+  document.getElementById('outFx').innerHTML=chips.map(c=>`<span class="fx ${c.type}">${c.label}</span>`).join('');
+  document.getElementById('outcomeOv').classList.remove('hidden');
+}
+function closeOutcome(){ close('outcomeOv'); updateEventIndicators(); }
+
+function openMarket(){ document.getElementById('marketOv').classList.remove('hidden'); }
+
+// ─── HELPERS ──────────────────────────────────────────────
+function meetsReq(r){ return Object.entries(r||{}).every(([k,v])=>S.stats[k]>=v); }
+function wPick(arr){ let r=Math.random()*arr.reduce((s,o)=>s+o.w,0); for(const o of arr){r-=o.w;if(r<=0)return o;} return arr[arr.length-1]; }
+function addXP(n){ S.xp+=n; while(S.xp>=S.level*XP_PER_LEVEL){S.xp-=S.level*XP_PER_LEVEL;S.level++;toast(`⬆️ Level ${S.level}!`);addLog('⬆️',`<span class="lg">Level ${S.level}!</span>`);} }
+function sl(k){ return{strength:'Kraft',knowledge:'Wissen',endurance:'Ausdauer',social:'Soziales',creativity:'Kreativität',mindfulness:'Achtsamkeit'}[k]||k; }
+function addLog(icon,html){ const l=document.getElementById('logList'),li=document.createElement('li'); li.className='log-item fresh'; li.innerHTML=`<span style="flex-shrink:0">${icon}</span><span>${html}</span>`; l.insertBefore(li,l.firstChild); while(l.children.length>30)l.removeChild(l.lastChild); setTimeout(()=>li.classList.remove('fresh'),3000); }
+let tt; function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('show'),3400); }
+function close(id){ document.getElementById(id).classList.add('hidden'); }
+function bgClose(e,id){ if(e.target===document.getElementById(id)) close(id); }
+
+// ─── UI UPDATE ─────────────────────────────────────────────
+function updateUI(){
+  for(const k of Object.keys(S.stats)){
+    document.getElementById('val-'+k).textContent=S.stats[k];
+    document.getElementById('bar-'+k).style.width=(S.stats[k]/STAT_MAX*100)+'%';
+  }
+  const n=S.level*XP_PER_LEVEL;
+  document.getElementById('xpBar').style.width=(S.xp/n*100)+'%';
+  document.getElementById('avatarLevel').textContent=`Level ${S.level} · ${S.xp}/${n} XP`;
+  const icons=['🧙','⚔️','🛡️','🔮','👑','🌟','🔥','🌌','🐉','✨'];
+  document.getElementById('avatarIcon').textContent=icons[Math.min(S.level-1,icons.length-1)];
+
+  const tl=document.getElementById('traitList');
+  tl.innerHTML=S.traits.length?S.traits.map(t=>`<span class="tt">${t}</span>`).join(''):'<span style="font-size:.62rem;color:var(--muted)">Noch keine.</span>';
+
+  // Companion slots
+  const cs=document.getElementById('compSlots'); cs.innerHTML='';
+  for(let i=0;i<3;i++){
+    const id=S.active[i],c=id?CD[id]:null;
+    const div=document.createElement('div'); div.className='comp-slot'+(c?` c-${c.r}`:'');
+    div.onclick=openCollection;
+    div.innerHTML=c?`<span class="cs-icon">${c.i}</span><span class="cs-name">${c.n}</span>`:`<span class="cs-empty">+ Begleiter</span>`;
+    cs.appendChild(div);
+  }
+  document.getElementById('ownedSm').textContent=S.owned.size;
+
+  // Artifacts with stack count
+  const ag=document.getElementById('artGrid');
+  const arts=Object.values(S.artifacts);
+  ag.innerHTML=arts.length
+    ?arts.map(a=>`<div class="art-chip ${a.r}" title="${Object.entries(a.b).map(([k,v])=>`+${v*a.count} ${sl(k)}`).join(', ')} total">${a.i} ${a.n}<span class="art-stack${a.count>=ART_MAX_STACK?' maxed':''}">×${a.count}</span></div>`).join('')
+    :'<span style="font-size:.62rem;color:var(--muted)">Noch keine.</span>';
+  document.getElementById('artSm').textContent=arts.length;
+
+  // Languages
+  for(const[c,k] of Object.entries(S.languages)) document.getElementById('lang-'+c)?.classList.toggle('known',k);
+}
+
+function updateEventIndicators(){
+  document.querySelectorAll('.loc-btn').forEach(b=>{
+    const locId=b.dataset.loc;
+    b.classList.toggle('has-event',!S.idle&&EVENTS.some(e=>e.locs.includes(locId)&&!S.seen.has(e.id)));
+    b.classList.toggle('has-dungeon',DUNGEONS.some(d=>d.locId===locId));
+  });
+}
+
+// ─── OVERPASS / GPS ───────────────────────────────────────
+const OSM_MAP = [
+  {locId:'gym',        filters:[t=>t.leisure==='fitness_centre',t=>t.amenity==='gym',t=>t.leisure==='sports_centre']},
+  {locId:'library',    filters:[t=>t.amenity==='library']},
+  {locId:'park',       filters:[t=>t.leisure==='park',t=>t.leisure==='garden',t=>t.leisure==='nature_reserve']},
+  {locId:'cafe',       filters:[t=>t.amenity==='cafe',t=>t.amenity==='coffee_shop']},
+  {locId:'museum',     filters:[t=>t.tourism==='museum',t=>t.tourism==='gallery']},
+  {locId:'restaurant', filters:[t=>t.amenity==='restaurant',t=>t.amenity==='fast_food',t=>t.amenity==='food_court']},
+  {locId:'temple',     filters:[t=>t.amenity==='place_of_worship']},
+  {locId:'university', filters:[t=>t.amenity==='university',t=>t.amenity==='college',t=>t.building==='university']},
+  {locId:'airport',    filters:[t=>t.aeroway==='aerodrome',t=>t.aeroway==='terminal']},
+];
+
+function osmTagsToLocId(tags={}) {
+  for(const {locId,filters} of OSM_MAP) if(filters.some(f=>f(tags))) return locId;
+  return null;
+}
+
+async function scanNearby(lat,lng){
+  const r=250;
+  const q=`[out:json][timeout:12];
+(
+  node["leisure"~"fitness_centre|park|garden|sports_centre"](around:${r},${lat},${lng});
+  way["leisure"~"fitness_centre|park|garden"](around:${r},${lat},${lng});
+  node["amenity"~"library|cafe|restaurant|fast_food|place_of_worship|university|college|gym"](around:${r},${lat},${lng});
+  node["tourism"~"museum|gallery"](around:${r},${lat},${lng});
+  node["aeroway"~"aerodrome|terminal"](around:${r},${lat},${lng});
+);
+out body 40;`;
+  const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:q});
+  const data=await res.json();
+  // Collect unique game-loc hits
+  const found=new Set();
+  for(const el of data.elements||[]){ const id=osmTagsToLocId(el.tags); if(id) found.add(id); }
+  return [...found];
+}
+
+function showGpsResults(locIds){
+  const wrap=document.getElementById('gpsLocSuggestions'); wrap.innerHTML='';
+  if(!locIds.length){ wrap.innerHTML='<span style="font-size:.64rem;color:var(--muted)">Keine bekannten Orte in 250m Umkreis.</span>'; return; }
+  locIds.forEach(id=>{
+    const loc=LOCS[id], btn=document.createElement('button');
+    btn.className='gps-loc-btn'; btn.innerHTML=`${loc.icon} ${loc.name}`;
+    btn.onclick=()=>{ wrap.innerHTML=''; clickLoc(id); };
+    wrap.appendChild(btn);
+  });
+}
+
+document.getElementById('gpsBtn').addEventListener('click', async ()=>{
+  const st=document.getElementById('gpsStatus');
+  if(!navigator.geolocation){st.textContent='❌ GPS nicht verfügbar.';return;}
+  st.textContent='📡 Standort wird ermittelt…';
+  navigator.geolocation.getCurrentPosition(async p=>{
+    const{latitude:lat,longitude:lng}=p.coords;
+    st.textContent=`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)} · Orte werden gescannt…`;
+    try{
+      const found=await scanNearby(lat,lng);
+      if(found.length){
+        st.textContent=`✅ ${found.length} Ort${found.length>1?'e':''} in der Nähe gefunden`;
+        showGpsResults(found);
+        addLog('📡',`GPS: <span class="lg">${found.map(id=>LOCS[id].name).join(', ')}</span> in der Nähe`);
+      } else {
+        st.textContent='📍 Kein bekannter Ort in 250m. Manuell wählen.';
+      }
+    } catch(e){
+      st.textContent='⚠️ Scan fehlgeschlagen – manuell wählen.';
+    }
+  }, ()=>{ st.textContent='❌ GPS verweigert – Bitte Berechtigung erlauben.'; });
+});
+
+updateUI(); updateEventIndicators();
+</script>
+</body>
+</html>
