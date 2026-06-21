@@ -2341,6 +2341,7 @@ function updateUI(){
 
   // Languages
   for(const[c,k] of Object.entries(S.languages)) document.getElementById('lang-'+c)?.classList.toggle('known',k);
+  saveState();
 }
 
 function updateEventIndicators(){
@@ -2450,11 +2451,68 @@ function updateLocButtons(){
   });
 }
 
+// ─── STATE PERSISTENCE ────────────────────────────────────
+const STATE_KEY='nomad_state';
+
+function saveState(){
+  try{
+    localStorage.setItem(STATE_KEY, JSON.stringify({
+      ...S,
+      owned:[...S.owned],
+      seen:[...S.seen],
+      ranksAchieved:[...S.ranksAchieved],
+      // GPS is session-only — never persist
+      userLat:null, userLng:null, dungeonCoords:null, nearbyLocs:null,
+    }));
+  }catch(e){ console.warn('saveState failed',e); }
+}
+
+function loadState(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(STATE_KEY)||'null');
+    if(!raw) return;
+    S.xp           = raw.xp   ?? 0;
+    S.level        = raw.level ?? 1;
+    S.stats        = raw.stats ?? S.stats;
+    S.traits       = raw.traits ?? [];
+    S.languages    = raw.languages ?? S.languages;
+    S.owned        = new Set(raw.owned ?? []);
+    S.active       = raw.active ?? [];
+    S.artifacts    = raw.artifacts ?? {};
+    S.seen         = new Set(raw.seen ?? []);
+    S.idle         = raw.idle ?? null;
+    S.dungeons     = raw.dungeons ?? [];
+    S.friends      = raw.friends ?? [];
+    S.lastLoc      = raw.lastLoc ?? null;
+    S.gold         = raw.gold ?? 0;
+    S.inventory    = raw.inventory ?? [];
+    S.ranksAchieved= new Set(raw.ranksAchieved ?? []);
+  }catch(e){ console.warn('loadState failed',e); }
+}
+
+function resumeTimers(){
+  // Resume active idle
+  if(S.idle){
+    document.getElementById('idleWrap').style.display='block';
+    document.getElementById('idleLocName').textContent=`${S.idle.locIcon} ${S.idle.locName} – ${IDLE_TIMES[S.idle.tidx]?.label??''}`;
+    document.querySelectorAll('.loc-btn').forEach(b=>b.disabled=true);
+    idleIv=setInterval(updateIdleBar,500);
+    updateIdleBar(); // fires finishIdle immediately if already expired
+  }
+  // Resume running dungeons
+  for(const dun of [...S.dungeons]){
+    const d=DUNGEONS.find(x=>x.id===dun.id);
+    if(d) setTimeout(()=>resolveDungeon(d), Math.max(0, dun.end-Date.now()));
+  }
+}
+
 // Apply saved mother tongue to language state
+loadState();
 if(profileData.motherTongue) S.languages[profileData.motherTongue]=true;
 
 updateUI(); updateEventIndicators();
 lucide.createIcons();
+resumeTimers();
 
 // First-time setup: open profile if name is still default
 if(profileData.name==='Wanderer' && !profileData.age && !profileData.city){
