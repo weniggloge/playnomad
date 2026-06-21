@@ -467,8 +467,24 @@ hr.divider {
   z-index: 1000;
   padding: 20px;
   backdrop-filter: blur(6px);
+  overflow: hidden;                 /* never scroll the overlay itself */
+  overscroll-behavior: contain;     /* don't chain scroll to the body */
 }
 .overlay.hidden { display: none; }
+
+/* Lock background scroll while any overlay is open — kills the 2nd scrollbar */
+html.modal-open, body.modal-open { overflow: hidden !important; }
+/* The inner modal is the ONLY scroller; smooth + contained */
+.big-modal, .dung-modal, .friends-modal, .event-card, .outcome-card, .idle-choose {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+/* Every modal container can scroll internally if it gets too tall
+   (overlay itself no longer scrolls, so they must) */
+.dung-modal, .event-card, .outcome-card, .idle-choose {
+  max-height: 90vh;
+  overflow-y: auto;
+}
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(14px); }
@@ -2934,6 +2950,19 @@ checkStreak();
 updateUI(); updateEventIndicators();
 lucide.createIcons();
 resumeTimers();
+
+// ─── BODY SCROLL LOCK — prevents the 2nd (background) scrollbar ───
+(function(){
+  const overlays=[...document.querySelectorAll('.overlay')];
+  const sync=()=>{
+    const open=overlays.some(o=>!o.classList.contains('hidden'));
+    document.documentElement.classList.toggle('modal-open',open);
+    document.body.classList.toggle('modal-open',open);
+  };
+  const obs=new MutationObserver(sync);
+  overlays.forEach(o=>obs.observe(o,{attributes:true,attributeFilter:['class']}));
+  sync();
+})();
 
 // First-time setup: open profile if name is still default
 if(profileData.name==='Wanderer' && !profileData.age && !profileData.city){
