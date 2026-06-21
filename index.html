@@ -187,6 +187,10 @@ hr.d { border:none; border-top:1px solid var(--border); margin:10px 0; }
 .dc.running { border-color:var(--epic); opacity:.65; cursor:not-allowed; }
 .dc.locked  { opacity:.55; cursor:not-allowed; }
 .loc-btn.has-dungeon::before { content:'⚔'; position:absolute; top:4px; left:5px; font-size:.58rem; color:var(--red); }
+.loc-btn.loc-locked { opacity:.35; cursor:not-allowed; }
+.loc-btn.loc-locked:hover { transform:none; border-color:var(--border); background:var(--card); }
+.loc-btn.loc-verified { border-color:var(--green) !important; }
+.loc-btn.loc-verified .ln { color:var(--green); }
 .dc-name { font-size:.82rem; font-weight:600; color:var(--text); margin-bottom:3px; }
 .dc-meta { font-size:.63rem; color:var(--muted); display:flex; gap:10px; margin-bottom:4px; }
 .dc-prob { font-size:.68rem; }
@@ -425,6 +429,7 @@ const S = {
   dungeons:[],
   friends:[],    // {id,name,icon,lang}
   lastLoc:null,  // locId of last completed idle — required to enter nearby dungeon
+  nearbyLocs:null, // null=not scanned yet, []=nothing found, [...ids]=GPS-verified locations
 };
 const XP_PER_LEVEL=50, STAT_MAX=100, ART_MAX_STACK=10;
 
@@ -441,12 +446,12 @@ const LOCS = {
   university: {name:'Universität', icon:'🎓',gains:{knowledge:4,social:3},  xp:8, artPool:['wissenssplitter','gelehrten_ring']},
 };
 
-// Prototype timers in seconds (real game: minutes)
+// Prototype: real durations shown, test timers in ms (25s/50s/100s/200s)
 const IDLE_TIMES = [
-  {label:'30 Min',ms:25*1000, mult:1.0, tidx:0, reward:'Basis'},
-  {label:'1 Std', ms:50*1000, mult:1.8, tidx:1, reward:'+80% Boni'},
-  {label:'2 Std', ms:100*1000,mult:3.2, tidx:2, reward:'+220% · Artefakt↑'},
-  {label:'4 Std', ms:200*1000,mult:6.0, tidx:3, reward:'+500% · Max Chance'},
+  {label:'30 Min',testLabel:'25s',ms:25*1000, mult:1.0, tidx:0, reward:'Basis'},
+  {label:'1 Std', testLabel:'50s',ms:50*1000, mult:1.8, tidx:1, reward:'+80% Boni'},
+  {label:'2 Std', testLabel:'100s',ms:100*1000,mult:3.2, tidx:2, reward:'+220% · Artefakt↑'},
+  {label:'4 Std', testLabel:'200s',ms:200*1000,mult:6.0, tidx:3, reward:'+500% · Max Chance'},
 ];
 
 // ─── ARTIFACTS (stackable, permanent stat boost per stack) ─
@@ -628,12 +633,16 @@ let idleIv = null;
 
 function clickLoc(locId) {
   if(S.idle){ toast('⏳ Dein Charakter idlet noch!'); return; }
+  // Lock if GPS scanned and this loc not nearby
+  if(S.nearbyLocs !== null && !S.nearbyLocs.includes(locId)){
+    const loc=LOCS[locId]; toast(`📍 ${loc.icon} ${loc.name} nicht in der Nähe.`); return;
+  }
   const loc = LOCS[locId];
   document.getElementById('icTitle').textContent = `${loc.icon} ${loc.name}`;
   const c = document.getElementById('icTimes'); c.innerHTML='';
   IDLE_TIMES.forEach((t,i) => {
     const b=document.createElement('button'); b.className='ic-time-btn';
-    b.innerHTML=`<div class="dur">${t.label}</div><div class="rew">${t.reward}</div>`;
+    b.innerHTML=`<div class="dur">${t.label}</div><div class="rew">${t.reward}</div><div style="font-size:.52rem;color:var(--muted);margin-top:2px">⚡ ${t.testLabel} (Prototype)</div>`;
     b.onclick=()=>{ close('idleChooseOv'); startIdle(locId,i); };
     c.appendChild(b);
   });
@@ -672,11 +681,12 @@ function finishIdle(partial=false, ratio=1) {
   S.lastLoc = idle.locId; // player "is here" — enables nearby dungeons
   const loc=LOCS[idle.locId], mult=partial?idle.mult*ratio:idle.mult, chips=[];
 
-  // Stats
+  // Stats — float precision, no floor (cancel gives true proportional share)
   for(const[k,v] of Object.entries(loc.gains)){
-    const gain=Math.max(1,Math.round(v*mult)), before=S.stats[k];
-    S.stats[k]=Math.min(STAT_MAX,S.stats[k]+gain);
-    const a=S.stats[k]-before; if(a>0) chips.push({label:`+${a} ${sl(k)}`,type:'pos'});
+    const gain=v*mult, before=S.stats[k];
+    S.stats[k]=Math.min(STAT_MAX, parseFloat((S.stats[k]+gain).toFixed(3)));
+    const a=parseFloat((S.stats[k]-before).toFixed(3));
+    if(a>0) chips.push({label:`+${fmtStat(a)} ${sl(k)}`,type:'pos'});
   }
   addXP(Math.round(loc.xp*mult));
 
@@ -943,6 +953,7 @@ function meetsReq(r){ return Object.entries(r||{}).every(([k,v])=>S.stats[k]>=v)
 function wPick(arr){ let r=Math.random()*arr.reduce((s,o)=>s+o.w,0); for(const o of arr){r-=o.w;if(r<=0)return o;} return arr[arr.length-1]; }
 function addXP(n){ S.xp+=n; while(S.xp>=S.level*XP_PER_LEVEL){S.xp-=S.level*XP_PER_LEVEL;S.level++;toast(`⬆️ Level ${S.level}!`);addLog('⬆️',`<span class="lg">Level ${S.level}!</span>`);} }
 function sl(k){ return{strength:'Kraft',knowledge:'Wissen',endurance:'Ausdauer',social:'Soziales',creativity:'Kreativität',mindfulness:'Achtsamkeit'}[k]||k; }
+function fmtStat(v){ const r=parseFloat(v.toFixed(3)); return r===Math.floor(r)?String(r):r.toFixed(3).replace(/0+$/,''); }
 function addLog(icon,html){ const l=document.getElementById('logList'),li=document.createElement('li'); li.className='log-item fresh'; li.innerHTML=`<span style="flex-shrink:0">${icon}</span><span>${html}</span>`; l.insertBefore(li,l.firstChild); while(l.children.length>30)l.removeChild(l.lastChild); setTimeout(()=>li.classList.remove('fresh'),3000); }
 let tt; function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('show'),3400); }
 function close(id){ document.getElementById(id).classList.add('hidden'); }
@@ -951,7 +962,7 @@ function bgClose(e,id){ if(e.target===document.getElementById(id)) close(id); }
 // ─── UI UPDATE ─────────────────────────────────────────────
 function updateUI(){
   for(const k of Object.keys(S.stats)){
-    document.getElementById('val-'+k).textContent=S.stats[k];
+    document.getElementById('val-'+k).textContent=fmtStat(S.stats[k]);
     document.getElementById('bar-'+k).style.width=(S.stats[k]/STAT_MAX*100)+'%';
   }
   const n=S.level*XP_PER_LEVEL;
@@ -1012,6 +1023,11 @@ function osmTagsToLocId(tags={}) {
   return null;
 }
 
+const OVERPASS_MIRRORS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://lz4.overpass-api.de/api/interpreter',
+  'https://z.overpass-api.de/api/interpreter',
+];
 async function scanNearby(lat,lng){
   const r=250;
   const q=`[out:json][timeout:12];
@@ -1023,12 +1039,18 @@ async function scanNearby(lat,lng){
   node["aeroway"~"aerodrome|terminal"](around:${r},${lat},${lng});
 );
 out body 40;`;
-  const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:q});
-  const data=await res.json();
-  // Collect unique game-loc hits
-  const found=new Set();
-  for(const el of data.elements||[]){ const id=osmTagsToLocId(el.tags); if(id) found.add(id); }
-  return [...found];
+  let lastErr;
+  for(const mirror of OVERPASS_MIRRORS){
+    try{
+      const res=await fetch(mirror,{method:'POST',body:q});
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data=await res.json();
+      const found=new Set();
+      for(const el of data.elements||[]){ const id=osmTagsToLocId(el.tags); if(id) found.add(id); }
+      return [...found];
+    } catch(e){ lastErr=e; console.warn(`Overpass mirror ${mirror} failed:`,e); }
+  }
+  throw lastErr;
 }
 
 function showGpsResults(locIds){
@@ -1048,21 +1070,37 @@ document.getElementById('gpsBtn').addEventListener('click', async ()=>{
   st.textContent='📡 Standort wird ermittelt…';
   navigator.geolocation.getCurrentPosition(async p=>{
     const{latitude:lat,longitude:lng}=p.coords;
-    st.textContent=`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)} · Orte werden gescannt…`;
+    st.textContent=`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)} · Scanne Umgebung…`;
     try{
       const found=await scanNearby(lat,lng);
+      S.nearbyLocs=found;
+      updateLocButtons();
       if(found.length){
-        st.textContent=`✅ ${found.length} Ort${found.length>1?'e':''} in der Nähe gefunden`;
+        st.textContent=`✅ ${found.length} Ort${found.length>1?'e':''} in 250m gefunden`;
         showGpsResults(found);
         addLog('📡',`GPS: <span class="lg">${found.map(id=>LOCS[id].name).join(', ')}</span> in der Nähe`);
       } else {
-        st.textContent='📍 Kein bekannter Ort in 250m. Manuell wählen.';
+        st.textContent='📍 Kein bekannter Ort in 250m Umkreis.';
       }
     } catch(e){
-      st.textContent='⚠️ Scan fehlgeschlagen – manuell wählen.';
+      // Overpass failed — don't lock locations, let player choose manually
+      st.textContent=`⚠️ Scan fehlgeschlagen (${e.message||'Netzwerk'}) – manuell wählen.`;
+      console.error('Overpass scan failed:',e);
     }
-  }, ()=>{ st.textContent='❌ GPS verweigert – Bitte Berechtigung erlauben.'; });
+  }, (err)=>{
+    st.textContent=err.code===1?'❌ GPS verweigert – Berechtigung erlauben.':'❌ GPS nicht verfügbar.';
+  });
 });
+
+function updateLocButtons(){
+  document.querySelectorAll('.loc-btn').forEach(b=>{
+    const locId=b.dataset.loc;
+    if(S.nearbyLocs===null){ b.classList.remove('loc-locked','loc-verified'); return; }
+    const nearby=S.nearbyLocs.includes(locId);
+    b.classList.toggle('loc-verified', nearby);
+    b.classList.toggle('loc-locked', !nearby);
+  });
+}
 
 updateUI(); updateEventIndicators();
 </script>
