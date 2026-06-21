@@ -1059,14 +1059,14 @@ hr.divider {
     Freunde
     <span class="badge" id="friendBadge" style="display:none">!</span>
   </button>
-  <button class="bot-tab" onclick="openMarket()">
-    <i data-lucide="store"></i>
-    Marktplatz
-  </button>
   <button class="bot-tab" onclick="openInventory()">
     <i data-lucide="backpack"></i>
     Tasche
     <span class="badge" id="invBadge" style="display:none"></span>
+  </button>
+  <button class="bot-tab" onclick="openHaendler()">
+    <i data-lucide="coins"></i>
+    Händler
   </button>
 </div>
 
@@ -1154,19 +1154,15 @@ hr.divider {
   </div>
 </div>
 
-<!-- INVENTORY OVERLAY -->
+<!-- INVENTORY OVERLAY (view-only — sell via Händler) -->
 <div class="overlay hidden" id="invOv" onclick="bgClose(event,'invOv')">
   <div class="big-modal">
     <div class="modal-hdr">
       <div class="modal-title">Tasche</div>
       <button class="modal-close" onclick="hidePanel('invOv')">✕</button>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:.72rem;color:var(--muted)">Loot verkaufen für Schattengold</div>
-      <div style="font-size:.8rem;font-weight:700;color:var(--gold)" class="gold-display">0 ◈</div>
-    </div>
+    <div style="font-size:.67rem;color:var(--muted);margin-bottom:12px">Gesammelter Loot. Zum Händler, um ihn zu verkaufen.</div>
     <div id="invList"></div>
-    <button onclick="sellAll()" style="margin-top:14px;width:100%;padding:11px;background:var(--s2);border:1px solid var(--gold);border-radius:10px;color:var(--gold);font-weight:600;font-size:.8rem;cursor:pointer">Alles verkaufen</button>
   </div>
 </div>
 
@@ -1189,21 +1185,26 @@ hr.divider {
   </div>
 </div>
 
-<!-- MARKET OVERLAY -->
-<div class="overlay hidden" id="marketOv" onclick="bgClose(event,'marketOv')">
-  <div class="dung-modal">
+<!-- HÄNDLER OVERLAY -->
+<div class="overlay hidden" id="haendlerOv" onclick="bgClose(event,'haendlerOv')">
+  <div class="big-modal">
     <div class="modal-hdr">
-      <div class="modal-title">Marktplatz</div>
-      <button class="modal-close" onclick="hidePanel('marketOv')">✕</button>
+      <div class="modal-title">Händler</div>
+      <button class="modal-close" onclick="hidePanel('haendlerOv')">✕</button>
     </div>
-    <div style="font-size:.77rem;color:var(--muted);line-height:1.85;padding:12px;background:var(--s2);border-radius:10px">
-      <div style="color:var(--gold);font-weight:600;margin-bottom:8px">Kommt mit Backend</div>
-      • Begleiter &amp; Artefakte zwischen Spielern handelbar<br>
-      • Zahlung in Schattengold (In-Game) oder € direkt<br>
-      • Plattform-Provision: 12%<br>
-      • Nur gefundene Items handelbar — keine pay-to-win Packs<br>
-      • Seltene Begleiter können echten Marktwert entwickeln
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border-radius:10px;margin-bottom:14px">
+      <span style="font-size:1.4rem">🧙</span>
+      <div style="flex:1">
+        <div style="font-size:.75rem;font-weight:600">Alter Krämer</div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:1px">„Was hast du mitgebracht? Ich zahle fair."</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.62rem;color:var(--muted)">Dein Gold</div>
+        <div style="font-size:1rem;font-weight:800;color:var(--gold)" class="gold-display">0 ◈</div>
+      </div>
     </div>
+    <div id="haendlerList"></div>
+    <button onclick="sellAll()" style="margin-top:14px;width:100%;padding:11px;background:var(--s2);border:1px solid var(--gold);border-radius:10px;color:var(--gold);font-weight:600;font-size:.8rem;cursor:pointer">Alles verkaufen</button>
   </div>
 </div>
 
@@ -1318,8 +1319,10 @@ const S = {
   idle:null,
   dungeons:[],
   friends:[],    // {id,name,icon,lang}
-  lastLoc:null,  // locId of last completed idle — required to enter nearby dungeon
-  nearbyLocs:null, // null=not scanned yet, []=nothing found, [...ids]=GPS-verified locations
+  lastLoc:null,
+  nearbyLocs:null,
+  userLat:null, userLng:null,
+  dungeonCoords:null, // [{lat,lng}] one per dungeon, generated after GPS scan
   gold:0,
   inventory:[],  // [{uid, id, n, r, i, val}]
   ranksAchieved:new Set(),
@@ -1495,24 +1498,41 @@ function getDailyLocSeed() {
 }
 // Computed once at load; stays fixed until page refresh across midnight
 const DAILY_LOC_SEED = getDailyLocSeed();
-function computeDailyDungeonLocs() {
-  const rand = seededRand(DAILY_LOC_SEED);
-  const locIds = Object.keys(LOCS);
-  // Each dungeon gets a random location — can overlap (two dungeons at same spot)
-  return DUNGEONS_DEF.map(() => locIds[Math.floor(rand() * locIds.length)]);
+// Haversine distance in meters between two GPS coords
+function haversine(lat1,lng1,lat2,lng2){
+  const R=6371000, dL=(lat2-lat1)*Math.PI/180, dG=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dG/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+// Generate daily dungeon GPS coords relative to user's location (area-seeded)
+function computeDungeonCoords(lat,lng){
+  const today=new Date();
+  const areaKey=Math.floor(lat)*1000+Math.floor(lng);
+  const seedStr=`${today.getFullYear()}-${today.getMonth()}-${today.getDate()}-${areaKey}`;
+  let h=0; for(let i=0;i<seedStr.length;i++) h=Math.imul(31,h)+seedStr.charCodeAt(i)|0;
+  const rand=seededRand(h>>>0);
+  return DUNGEONS.map(()=>{
+    const dist=250+rand()*1750; // 250m–2km away
+    const bearing=rand()*2*Math.PI;
+    const dlat=(dist/111320)*Math.cos(bearing);
+    const dlng=(dist/(111320*Math.cos(lat*Math.PI/180)))*Math.sin(bearing);
+    return {lat:lat+dlat,lng:lng+dlng};
+  });
+}
+function dungeonDirection(fromLat,fromLng,toLat,toLng){
+  const dLng=toLng-fromLng, dLat=toLat-fromLat;
+  const deg=(Math.atan2(dLng,dLat)*180/Math.PI+360)%360;
+  return ['N','NO','O','SO','S','SW','W','NW'][Math.round(deg/45)%8];
 }
 
 // ─── DUNGEONS ─────────────────────────────────────────────
-const DUNGEONS_DEF = [
+const DUNGEONS = [
   {id:'d1',name:'Verlassene Kellerei',icon:'🍾',diff:'Einfach', sw:{strength:.4,endurance:.4,knowledge:.2},  base:.65,ms:30*1000, xp:15,ac:.12,ap:['eisenherz','natur_stein'],         cc:.008},
   {id:'d2',name:'Ruine des alten Turms',icon:'🏚️',diff:'Mittel',sw:{strength:.5,endurance:.3,mindfulness:.2},base:.5, ms:60*1000, xp:30,ac:.20,ap:['kraftband','altes_buch'],            cc:.02},
   {id:'d3',name:'Katakomben',          icon:'💀',diff:'Schwer', sw:{strength:.6,endurance:.3,knowledge:.1},  base:.35,ms:120*1000,xp:60,ac:.35,ap:['altes_relikt','reisepass_shard'],    cc:.035},
   {id:'d4',name:'Schattenriss-Spalt',  icon:'🌑',diff:'Episch', sw:{strength:.4,knowledge:.3,mindfulness:.3},base:.2, ms:240*1000,xp:120,ac:.55,ap:['runen_fragment','heiliger_splitter'],cc:.07},
   {id:'d5',name:'Der ewige Nebel',     icon:'🌫️',diff:'Legendär',sw:{strength:.3,knowledge:.3,endurance:.2,mindfulness:.2},base:.08,ms:480*1000,xp:300,ac:.75,ap:['uraltes_relikt','runen_fragment'],cc:.13},
 ];
-// Merge daily location into each dungeon definition
-const DUNGEON_LOCS = computeDailyDungeonLocs();
-const DUNGEONS = DUNGEONS_DEF.map((d,i) => ({...d, locId: DUNGEON_LOCS[i]}));
 
 // ─── EVENTS ───────────────────────────────────────────────
 const EVENTS = [
@@ -1803,45 +1823,56 @@ function openDungeons(){
 }
 function renderDungeons(){
   const l=document.getElementById('dungList'); l.innerHTML='';
-  // Header: reset info
-  const today=new Date(); const resetStr=`${String(today.getHours()).padStart(2,'0')}:${String(today.getMinutes()).padStart(2,'0')}`;
   const hdr=document.createElement('div');
   hdr.style.cssText='font-size:.6rem;color:var(--muted);margin-bottom:10px;padding:6px 8px;background:var(--s2);border-radius:7px;line-height:1.6';
-  hdr.innerHTML=`🗓️ Positionen heute täglich zufällig. Nächste Rotation: <strong style="color:var(--gold)">Mitternacht</strong><br>📍 Dein aktueller Ort: <strong style="color:var(--gold)">${S.lastLoc?LOCS[S.lastLoc].icon+' '+LOCS[S.lastLoc].name:'<span style="color:var(--red)">Noch kein Ort besucht</span>'}</strong>`;
+  const gpsReady=S.userLat!==null&&S.dungeonCoords!==null;
+  hdr.innerHTML=`🗓️ Dungeon-Positionen täglich neu (Mitternacht)<br>`
+    +(S.level<10?`🔒 <strong style="color:var(--red)">Ab Level 10 zugänglich</strong>`
+      :gpsReady?`📡 GPS aktiv · Innerhalb 150m eintreten`
+      :`📡 <strong style="color:var(--gold)">GPS-Scan erforderlich für Zugang</strong>`);
   l.appendChild(hdr);
-  DUNGEONS.forEach(d=>{
+  DUNGEONS.forEach((d,idx)=>{
     const running=S.dungeons.find(x=>x.id===d.id);
     const pow=Object.entries(d.sw).reduce((s,[k,w])=>s+S.stats[k]*w,0);
     const pct=Math.min(95,Math.round((d.base+(pow/100)*0.4)*100));
     const cls=pct>60?'hi':pct>35?'mi':'lo';
-    const loc=LOCS[d.locId];
-    const nearby=S.lastLoc===d.locId;
-    const locked=!nearby&&!running;
+    let dist=null, inRange=false, dir='';
+    if(gpsReady){
+      const coord=S.dungeonCoords[idx];
+      dist=Math.round(haversine(S.userLat,S.userLng,coord.lat,coord.lng));
+      inRange=dist<=150;
+      dir=dungeonDirection(S.userLat,S.userLng,coord.lat,coord.lng);
+    }
+    const levelOk=S.level>=10;
+    const locked=!running&&(!levelOk||!inRange);
     const div=document.createElement('div');
     div.className='dc'+(running?' running':locked?' locked':'');
+    let locationLine='';
+    if(!levelOk) locationLine=`<div class="dc-prob lo">🔒 Level 10 erforderlich (du: ${S.level})</div>`;
+    else if(!gpsReady) locationLine=`<div class="dc-prob lo">📡 GPS-Scan erforderlich</div>`;
+    else if(inRange) locationLine=`<div class="dc-prob hi">✓ In Reichweite (${dist}m)</div>`;
+    else locationLine=`<div class="dc-prob mi">📍 ${dist}m · Richtung ${dir}</div>`;
     div.innerHTML=`<div class="dc-name">${d.icon} ${d.name}</div>
-      <div class="dc-meta"><span>${d.diff}</span><span>+${d.xp} XP</span></div>
-      <div style="font-size:.62rem;margin-bottom:3px">
-        📍 Heute bei: <strong style="color:${nearby?'var(--green)':'var(--gold)'}">${loc.icon} ${loc.name}</strong>
-        ${nearby?'<span style="color:var(--green);margin-left:5px">✓ Du bist hier</span>':''}
-      </div>
-      <div class="dc-prob ${locked?'lo':cls}">${locked?`🔒 Zuerst ${loc.icon} ${loc.name} besuchen`:`Siegchance: ${pct}%`}</div>
-      ${running?`<div style="font-size:.62rem;color:var(--muted);margin-top:3px">⚔️ läuft... (${Math.ceil(Math.max(0,running.end-Date.now())/1000)}s)</div>`:''}`;
+      <div class="dc-meta"><span>${d.diff}</span><span>+${d.xp} XP</span><span style="color:var(--gold);font-size:.6rem">immer Loot</span></div>
+      ${locationLine}
+      ${!locked&&!running?`<div class="dc-prob ${cls}" style="margin-top:3px">Siegchance: ${pct}%</div>`:''}
+      ${running?`<div style="font-size:.62rem;color:var(--muted);margin-top:3px">⚔️ läuft… ${Math.ceil(Math.max(0,running.end-Date.now())/1000)}s</div>`:''}`;
     if(!locked&&!running) div.onclick=()=>enterDungeon(d);
     l.appendChild(div);
   });
 }
 function enterDungeon(d){
+  if(S.level<10){ toast('🔒 Level 10 erforderlich!'); return; }
   if(S.idle){ toast('⏳ Charakter idlet!'); return; }
   if(S.dungeons.find(x=>x.id===d.id)) return;
-  if(S.lastLoc!==d.locId){
-    const loc=LOCS[d.locId];
-    toast(`📍 Zuerst ${loc.icon} ${loc.name} besuchen!`);
-    return;
-  }
+  if(!S.dungeonCoords||S.userLat===null){ toast('📡 GPS-Scan zuerst!'); return; }
+  const idx=DUNGEONS.indexOf(d);
+  const coord=S.dungeonCoords[idx];
+  const dist=Math.round(haversine(S.userLat,S.userLng,coord.lat,coord.lng));
+  if(dist>150){ toast(`📍 Zu weit! ${dist}m (max 150m)`); return; }
   S.dungeons.push({id:d.id,end:Date.now()+d.ms});
-  addLog(d.icon,`Dungeon: <span class="lg">${d.name}</span> – Charakter kämpft idle…`);
-  renderDungeons(); // keep modal open, show running state
+  addLog(d.icon,`Dungeon: <span class="lg">${d.name}</span> – Kampf läuft…`);
+  renderDungeons();
   setTimeout(()=>resolveDungeon(d),d.ms);
 }
 function resolveDungeon(d){
@@ -1866,13 +1897,13 @@ function resolveDungeon(d){
       const cands=Object.entries(CD).filter(([id])=>!S.owned.has(id));
       if(cands.length){ const[id,c]=cands[Math.floor(Math.random()*cands.length)]; S.owned.add(id); chips.push({label:`${c.i} ${c.n} (${c.r})`,type:'comp'}); }
     }
-    // Loot drop on victory
-    const lootMult = d.base < 0.3 ? 3 : d.base < 0.5 ? 2 : 1.2;
-    const lootId = dropLoot(lootMult);
-    if(lootId){ const l=LOOT[lootId]; chips.push({label:`${l.i} ${l.n} (Tasche)`,type:'loot'}); }
   }
+  // Loot always drops — win gives better rates, loss gives common scraps
+  const lootMult = ok ? (d.base < 0.3 ? 3 : d.base < 0.5 ? 2 : 1.2) : 0.4;
+  const lootId = dropLoot(lootMult);
+  if(lootId){ const l=LOOT[lootId]; chips.push({label:`${l.i} ${l.n} (Tasche)`,type:'loot'}); }
   updateUI();
-  showOutcome(ok?`⚔️ ${d.icon} ${d.name}\n\nSieg! Dein Charakter hat bestanden.`:`💀 ${d.icon} ${d.name}\n\nNiederlage. Keine Beute. Aber du weißt nun was fehlt.`,chips.length?chips:[{label:ok?'Sieg':'Niederlage',type:ok?'pos':'neg'}]);
+  showOutcome(ok?`⚔️ ${d.icon} ${d.name}\n\nSieg! Dein Charakter hat bestanden.`:`💀 ${d.icon} ${d.name}\n\nNiederlage – aber du findest etwas auf dem Rückweg.`,chips.length?chips:[{label:ok?'Sieg':'Rückzug',type:ok?'pos':'neg'}]);
   addLog(d.icon,`Dungeon ${ok?'✅':'❌'}: <span class="lg">${d.name}</span>`);
 }
 
@@ -1948,7 +1979,7 @@ function showOutcome(text,chips){
 }
 function closeOutcome(){ hidePanel('outcomeOv'); updateEventIndicators(); }
 
-function openMarket(){ document.getElementById('marketOv').classList.remove('hidden'); }
+function openHaendlerOrInventory(){ openHaendler(); } // legacy alias
 
 // ─── LOOT / INVENTORY ─────────────────────────────────────
 function dropLoot(mult){
@@ -1970,10 +2001,27 @@ function dropLoot(mult){
 function openInventory(){ renderInventory(); document.getElementById('invOv').classList.remove('hidden'); }
 function renderInventory(){
   const el=document.getElementById('invList');
-  const goldEl=document.getElementById('invGold');
-  if(goldEl) goldEl.textContent=S.gold;
   if(!S.inventory.length){
-    el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:.75rem;padding:32px 0">Tasche leer.</div>';
+    el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:.75rem;padding:32px 0">Tasche leer.<br><span style="font-size:.65rem">Loot aus Idle &amp; Dungeons sammeln.</span></div>';
+    return;
+  }
+  const order={legendary:0,epic:1,uncommon:2,common:3};
+  const sorted=[...S.inventory].sort((a,b)=>order[a.r]-order[b.r]);
+  el.innerHTML=sorted.map(item=>`
+    <div class="inv-item ${item.r}">
+      <span class="inv-icon">${item.i}</span>
+      <div class="inv-info">
+        <div class="inv-name">${item.n}</div>
+        <div class="inv-rar">${item.r} · ${item.val} ◈</div>
+      </div>
+    </div>`).join('');
+}
+
+function openHaendler(){ renderHaendler(); document.getElementById('haendlerOv').classList.remove('hidden'); }
+function renderHaendler(){
+  const el=document.getElementById('haendlerList');
+  if(!S.inventory.length){
+    el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:.75rem;padding:32px 0">„Du hast nichts dabei."<br><span style="font-size:.65rem">Loot aus Idle &amp; Dungeons sammeln.</span></div>';
     return;
   }
   const order={legendary:0,epic:1,uncommon:2,common:3};
@@ -1996,18 +2044,15 @@ function sellItem(uid){
   const item=S.inventory[idx];
   S.gold+=item.val;
   S.inventory.splice(idx,1);
-  renderInventory();
-  updateGoldDisplay();
-  toast(`Verkauft: ${item.i} ${item.n} für ${item.val} ◈`);
+  renderHaendler(); renderInventory(); updateGoldDisplay(); updateUI();
+  toast(`Verkauft: ${item.i} ${item.n} · +${item.val} ◈`);
 }
 function sellAll(){
-  if(!S.inventory.length) return;
+  if(!S.inventory.length){ toast('„Deine Tasche ist leer."'); return; }
   const total=S.inventory.reduce((s,x)=>s+x.val,0);
-  S.gold+=total;
-  S.inventory=[];
-  renderInventory();
-  updateGoldDisplay();
-  toast(`Alles verkauft: +${total} ◈`);
+  S.gold+=total; S.inventory=[];
+  renderHaendler(); renderInventory(); updateGoldDisplay(); updateUI();
+  toast(`Alles verkauft · +${total} ◈`);
 }
 function updateGoldDisplay(){
   document.querySelectorAll('.gold-display').forEach(el=>{ el.textContent=S.gold+' ◈'; });
@@ -2178,6 +2223,8 @@ document.getElementById('gpsBtn').addEventListener('click', async ()=>{
   st.textContent='Standort wird ermittelt…';
   navigator.geolocation.getCurrentPosition(async p=>{
     const{latitude:lat,longitude:lng}=p.coords;
+    S.userLat=lat; S.userLng=lng;
+    S.dungeonCoords=computeDungeonCoords(lat,lng);
     st.textContent=`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)} · Scanne Umgebung…`;
     try{
       const found=await scanNearby(lat,lng);
