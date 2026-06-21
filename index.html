@@ -1296,6 +1296,7 @@ hr.divider {
         </div>
       </div>
       <button class="cont-btn" onclick="saveProfile()" style="margin-top:4px">Speichern</button>
+      <button onclick="devBoost()" style="margin-top:8px;width:100%;padding:9px;background:none;border:1px dashed #374151;border-radius:10px;color:#6b7280;font-size:.68rem;cursor:pointer">🛠 Dev-Boost (Prototype Testing)</button>
     </div>
   </div>
 </div>
@@ -1980,6 +1981,21 @@ function showOutcome(text,chips){
 function closeOutcome(){ hidePanel('outcomeOv'); updateEventIndicators(); }
 
 function openHaendlerOrInventory(){ openHaendler(); } // legacy alias
+
+function devBoost(){
+  S.level=15; S.xp=0;
+  for(const k of Object.keys(S.stats)) S.stats[k]=35;
+  S.gold+=1000;
+  // Add sample loot
+  ['drachenschuppe','schriftrolle','alte_muenze','blauer_kristall'].forEach(id=>{
+    const l=LOOT[id]; if(l&&S.inventory.length<INV_MAX) S.inventory.push({uid:Date.now()+Math.random(),id,...l});
+  });
+  // Fake GPS so all dungeons are "in range"
+  S.userLat=48.0; S.userLng=8.0;
+  S.dungeonCoords=DUNGEONS.map(()=>({lat:48.0,lng:8.0}));
+  updateUI(); hidePanel('profileOv');
+  toast('🛠 Dev-Boost: Level 15 · Stats 35 · 1000 ◈ · GPS simuliert');
+}
 
 // ─── LOOT / INVENTORY ─────────────────────────────────────
 function dropLoot(mult){
