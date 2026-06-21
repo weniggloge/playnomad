@@ -936,7 +936,7 @@ hr.divider {
           <div class="idle-loc" id="idleLocName">…</div>
           <div class="idle-track"><div class="idle-fill" id="idleBar" style="width:0%"></div></div>
           <div class="idle-timer" id="idleTimer">–</div>
-          <button class="idle-cancel" onclick="cancelIdle()">✕ Abbrechen (50% Belohnung)</button>
+          <button class="idle-cancel" onclick="cancelIdle()">✕ Abbrechen (anteilige Belohnung)</button>
         </div>
       </div>
 
@@ -1384,7 +1384,7 @@ function updateIdleBar() {
   if(now>=S.idle.endTime) finishIdle(false);
 }
 
-function cancelIdle() { if(!S.idle) return; const e=Date.now()-(S.idle.endTime-S.idle.totalMs); finishIdle(true,Math.min(1,e/S.idle.totalMs)*0.5); }
+function cancelIdle() { if(!S.idle) return; const e=Date.now()-(S.idle.endTime-S.idle.totalMs); finishIdle(true,Math.min(1,e/S.idle.totalMs)); }
 
 function finishIdle(partial=false, ratio=1) {
   clearInterval(idleIv); idleIv=null;
@@ -1453,7 +1453,8 @@ function finishIdle(partial=false, ratio=1) {
   });
 
   updateUI();
-  const txt=`${loc.icon} ${idle.locName}${partial?' – vorzeitig abgebrochen':' – abgeschlossen'}.\n${partial?'50% Belohnung.':'Volle Belohnung.'}`;
+  const pctDone=partial?Math.round(Math.min(1,(Date.now()-(idle.endTime-idle.totalMs)+1)/idle.totalMs*100)):100;
+  const txt=`${loc.icon} ${idle.locName}${partial?` – abgebrochen (${pctDone}% der Zeit)`:' – abgeschlossen'}.\n${partial?`Anteilige Belohnung: ${pctDone}%.`:'Volle Belohnung.'}`;
   showOutcome(txt, chips);
 
   // Event after idle
