@@ -1091,17 +1091,17 @@ hr.divider {
 </div>
 
 <!-- EVENT OVERLAY -->
-<div class="overlay hidden" id="eventOv" onclick="bgClose(event,'eventOv')">
+<div class="overlay hidden" id="eventOv" onclick="if(event.target===this)dismissEvent()">
   <div class="event-card">
     <div class="ev-meta">
       <span id="evIcon" style="font-size:1.2rem"></span>
       <span class="ev-label" id="evLoc"></span>
-      <button class="modal-close" style="margin-left:auto" onclick="hidePanel('eventOv')">✕</button>
+      <button class="modal-close" style="margin-left:auto" onclick="dismissEvent()">✕</button>
     </div>
     <div class="ev-title" id="evTitle"></div>
     <div class="ev-text" id="evText"></div>
     <div id="evOpts"></div>
-    <button style="margin-top:8px;width:100%;background:none;border:none;font-size:.65rem;color:var(--muted);cursor:pointer;padding:6px" onclick="hidePanel('eventOv')">Ignorieren — Event verfällt</button>
+    <button style="margin-top:8px;width:100%;background:none;border:none;font-size:.65rem;color:var(--muted);cursor:pointer;padding:6px" onclick="dismissEvent()">Ignorieren — Event verfällt</button>
   </div>
 </div>
 
@@ -1643,6 +1643,55 @@ const EVENTS = [
      {text:'Ich gehe näher.',req:{},outcomes:[{w:50,text:'"Setz dich." Du gehst als Freund.',fx:{social:6,creativity:2},xp:12,trait:'Offen für Fremdes',comp:'fuchs'},{w:30,text:'Ihr 40. Hochzeitstag hier.',fx:{social:4,mindfulness:4},xp:10},{w:20,text:'Sie winken dich weg.',fx:{mindfulness:2},xp:3}]},
      {text:'Aus der Ferne.',req:{},outcomes:[{w:100,text:'Irgendetwas Wärmendes bleibt.',fx:{mindfulness:3,creativity:1},xp:4}]},
    ]},
+  // ── Additional events for variety ──
+  {id:'ev8',locs:['gym'],icon:'🏋️',loc_label:'Fitnessstudio',title:'Der neue Rekord',
+   text:'Du übertriffst dich selbst. Mehr als du dachtest. Die anderen merken es auch.',
+   options:[
+     {text:'Ich feiere es innerlich.',req:{},outcomes:[{w:70,text:'Stille Stärke. Kein Publikum nötig.',fx:{strength:3,mindfulness:2},xp:8,trait:'Stille Kraft'},{w:30,text:'Du weißt jetzt, was möglich ist.',fx:{strength:5},xp:10,trait:'Unbesiegbar'}]},
+     {text:'Ich setze die Latte höher.',req:{endurance:8},req_label:'Ausdauer 8',outcomes:[{w:60,text:'Knapp. Aber du weißt wo die Grenze ist.',fx:{endurance:4,strength:2},xp:9},{w:40,text:'Zu viel. Morgen wieder.',fx:{endurance:2},xp:4}]},
+   ]},
+  {id:'ev9',locs:['gym'],icon:'🤝',loc_label:'Fitnessstudio',title:'Der Trainingspartner',
+   text:'Jemand fragt ob er mitmachen kann. Du kennst ihn nicht.',
+   options:[
+     {text:'"Klar, komm."',req:{social:5},req_label:'Soziales 5',outcomes:[{w:65,text:'Ihr trainiert gut zusammen. Er kommt nächste Woche wieder.',fx:{social:4,strength:2},xp:9,trait:'Offen für Fremdes'},{w:35,text:'Er redet zu viel. Aber er meint es gut.',fx:{social:2,mindfulness:2},xp:5}]},
+     {text:'"Ich trainiere lieber allein."',req:{},outcomes:[{w:100,text:'Fokus. Keine Ablenkung.',fx:{strength:3,endurance:2},xp:6,trait:'Stille Kraft'}]},
+   ]},
+  {id:'ev10',locs:['park'],icon:'🌧️',loc_label:'Park',title:'Der Regenguss',
+   text:'Ohne Vorwarnung. Der Himmel öffnet sich. Du hast keinen Schirm.',
+   options:[
+     {text:'Ich bleibe. Es ist nur Regen.',req:{},outcomes:[{w:60,text:'Du wirst nass. Du lachst trotzdem.',fx:{endurance:4,mindfulness:3},xp:9,trait:'Nomaden-Blut'},{w:40,text:'Seltsam ruhig hier im Regen.',fx:{mindfulness:5},xp:7,trait:'Stille Kraft'}]},
+     {text:'Ich renne zum nächsten Café.',req:{},outcomes:[{w:70,text:'Warm. Trocken. Fremde mit dem gleichen Gesicht.',fx:{social:2,creativity:1},xp:4},{w:30,text:'Zu spät – vollständig nass. Du bestellst trotzdem.',fx:{endurance:2,social:2},xp:5}]},
+   ]},
+  {id:'ev11',locs:['park','cafe'],icon:'🎸',loc_label:'Draußen',title:'Der Straßenmusiker',
+   text:'Ein Mann spielt Gitarre. Niemand hört wirklich zu. Du bleibst stehen.',
+   options:[
+     {text:'Ich höre zu. Wirklich.',req:{},outcomes:[{w:55,text:'Ein Lied später: du weißt nicht warum du fast weinst.',fx:{mindfulness:4,creativity:3},xp:8,trait:'Künstlerauge'},{w:45,text:'"Dankeschön." Er lächelt zum ersten Mal heute.',fx:{social:3,mindfulness:2},xp:6,trait:'Mitfühlend'}]},
+     {text:'Ich werfe etwas in den Hut.',req:{},outcomes:[{w:100,text:'Er nickt. Kleine Geste, echter Moment.',fx:{social:3,mindfulness:1},xp:5}]},
+   ]},
+  {id:'ev12',locs:['cafe','restaurant'],icon:'👴',loc_label:'Café',title:'Der alte Stammgast',
+   text:'Jeden Tag derselbe Platz. Heute spricht er dich an: "Du bist neu hier."',
+   options:[
+     {text:'"Ja. Und du schon lange?"',req:{social:4},req_label:'Soziales 4',outcomes:[{w:60,text:'"37 Jahre." Er erzählt. Du hörst zu.',fx:{knowledge:3,social:4},xp:9,trait:'Geduldiger Zuhörer'},{w:40,text:'Er erzählt von früher. Die Stadt war anders.',fx:{knowledge:5,mindfulness:2},xp:8,trait:'Stiller Zeuge'}]},
+     {text:'Kurz nicken, Kopfhörer rein.',req:{},outcomes:[{w:100,text:'Er schaut weg. Vielleicht morgen.',fx:{},xp:2}]},
+   ]},
+  {id:'ev13',locs:['university','library'],icon:'📓',loc_label:'Bibliothek',title:'Das alte Notizbuch',
+   text:'Zwischen zwei Büchern: ein Notizbuch. Handschrift. Jemand hat Träume hineingeschrieben.',
+   options:[
+     {text:'Ich lese es.',req:{},outcomes:[{w:50,text:'Seite 12: "Ich werde Architektin." Keine weiteren Einträge.',fx:{creativity:4,mindfulness:3},xp:8,trait:'Spurensucher'},{w:30,text:'Koordinaten, Daten, Skizzen. Jemand hat etwas gesucht.',fx:{knowledge:4},xp:7,trait:'Detektiv-Instinkt'},{w:20,text:'Du fühlst dich wie ein Eindringling. Du legst es zurück.',fx:{mindfulness:3},xp:5,trait:'Weiser Respekt'}]},
+     {text:'Ich gebe es an der Ausgabe ab.',req:{mindfulness:6},req_label:'Achtsamkeit 6',outcomes:[{w:100,text:'Vielleicht kommt jemand danach.',fx:{mindfulness:4,social:2},xp:7,trait:'Weiser Respekt'}]},
+   ]},
+  {id:'ev14',locs:['museum'],icon:'🖼️',loc_label:'Museum',title:'Das Bild das dich anschaut',
+   text:'Ein Portrait aus dem 18. Jahrhundert. Die Augen folgen dir. Du stehst seit 10 Minuten davor.',
+   options:[
+     {text:'Ich zeichne es nach – aus dem Gedächtnis.',req:{creativity:8},req_label:'Kreativität 8',outcomes:[{w:65,text:'Nicht perfekt. Aber irgendwie ehrlicher.',fx:{creativity:5,mindfulness:2},xp:10,trait:'Künstlerauge'},{w:35,text:'"Schön." Ein Museumswächter schaut dir zu.',fx:{creativity:3,social:2},xp:7}]},
+     {text:'Ich forsche wer das war.',req:{knowledge:8},req_label:'Wissen 8',outcomes:[{w:100,text:'Ein Händler. Mittelmäßig erfolgreich. Starb unbekannt.',fx:{knowledge:5,mindfulness:3},xp:9,trait:'Spurensucher'}]},
+   ]},
+  {id:'ev15',locs:['temple'],icon:'🕯️',loc_label:'Tempel',title:'Die Kerze am Eingang',
+   text:'Eine Kerze brennt. Daneben ein Zettel: "Für alle die nicht wiederkommen."',
+   options:[
+     {text:'Ich zünde eine zweite an.',req:{},outcomes:[{w:60,text:'Für wen? Du weißt es nicht. Trotzdem richtig.',fx:{mindfulness:5,social:2},xp:8,trait:'Mitfühlend'},{w:40,text:'Stille. Nur das Knistern.',fx:{mindfulness:6},xp:9,trait:'Stille Kraft'}]},
+     {text:'Ich lese den Zettel nochmal.',req:{mindfulness:5},req_label:'Achtsamkeit 5',outcomes:[{w:100,text:'Handschrift eines Kindes.',fx:{mindfulness:4,creativity:2},xp:7,trait:'Stiller Zeuge'}]},
+   ]},
   // ── Unlearn events (require specific trait, narrative turning points) ──
   {id:'ev_u1',locs:['airport'],traitReq:'Fernweh',icon:'✈️',loc_label:'Flughafen',title:'Der letzte Gate',
    text:'Eine Frau im Wartebereich schaut dich an. "Bist du jemals wirklich angekommen?" Du hast keine Antwort.',
@@ -1814,7 +1863,7 @@ function finishIdle(partial=false, ratio=1) {
 
   // Event after idle
   const evAvail=EVENTS.filter(e=>e.locs.includes(idle.locId)&&!S.seen.has(e.id)&&(!e.traitReq||S.traits.includes(e.traitReq)));
-  if(!partial&&evAvail.length&&Math.random()<0.7) setTimeout(()=>showEv(evAvail[Math.floor(Math.random()*evAvail.length)]),1800);
+  if(!partial&&evAvail.length&&Math.random()<0.28) setTimeout(()=>showEv(evAvail[Math.floor(Math.random()*evAvail.length)]),1800);
   updateEventIndicators();
   saveState();
 }
@@ -2009,6 +2058,7 @@ function resolveDungeon(d){
 
 // ─── EVENTS ───────────────────────────────────────────────
 let curEv=null;
+function dismissEvent(){ if(curEv){ S.seen.add(curEv.id); saveState(); } hidePanel('eventOv'); updateEventIndicators(); }
 function showEv(ev){
   curEv=ev;
   document.getElementById('evIcon').textContent=ev.icon;
