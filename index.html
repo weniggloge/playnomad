@@ -352,14 +352,23 @@ hr.divider {
 .loc-btn:hover:not(:disabled) .lucide { stroke: var(--gold); }
 
 .loc-icon-wrap {
-  width: 38px;
-  height: 38px;
-  background: var(--s3);
-  border-radius: 9px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.loc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+  transition: transform .2s;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+.loc-btn:hover:not(:disabled) .loc-img { transform: scale(1.08); }
 .loc-name { font-size: .59rem; color: var(--text); font-weight: 500; }
 .loc-stats { font-size: .52rem; color: var(--muted); }
 
@@ -923,7 +932,6 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
   border-color: var(--cyan) !important;
   box-shadow: 0 0 14px rgba(25,230,255,.25), inset 0 0 18px rgba(25,230,255,.05) !important;
 }
-.loc-icon-wrap { background: linear-gradient(150deg, var(--s3), var(--s1)) !important; border: 1px solid var(--border); }
 
 /* ── SECTION LABELS — neon ── */
 .section-label { color: var(--cyan) !important; opacity: .9; }
@@ -1272,47 +1280,47 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
       <!-- Location grid -->
       <div class="loc-grid">
         <button class="loc-btn" data-loc="gym" onclick="clickLoc('gym')">
-          <div class="loc-icon-wrap"><i data-lucide="dumbbell"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/gym.png" alt="" draggable="false"></div>
           <span class="loc-name">Fitnessstudio</span>
           <span class="loc-stats">Kraft · Ausdauer</span>
         </button>
         <button class="loc-btn" data-loc="library" onclick="clickLoc('library')">
-          <div class="loc-icon-wrap"><i data-lucide="book-open"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/library.png" alt="" draggable="false"></div>
           <span class="loc-name">Bibliothek</span>
           <span class="loc-stats">Wissen</span>
         </button>
         <button class="loc-btn" data-loc="park" onclick="clickLoc('park')">
-          <div class="loc-icon-wrap"><i data-lucide="tree-pine"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/park.png" alt="" draggable="false"></div>
           <span class="loc-name">Park</span>
           <span class="loc-stats">Ausdauer · Achtsamkeit</span>
         </button>
         <button class="loc-btn" data-loc="cafe" onclick="clickLoc('cafe')">
-          <div class="loc-icon-wrap"><i data-lucide="coffee"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/cafe.png" alt="" draggable="false"></div>
           <span class="loc-name">Café</span>
           <span class="loc-stats">Soziales · Kreativ</span>
         </button>
         <button class="loc-btn" data-loc="museum" onclick="clickLoc('museum')">
-          <div class="loc-icon-wrap"><i data-lucide="landmark"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/museum.png" alt="" draggable="false"></div>
           <span class="loc-name">Museum</span>
           <span class="loc-stats">Wissen · Kreativ</span>
         </button>
         <button class="loc-btn" data-loc="airport" onclick="clickLoc('airport')">
-          <div class="loc-icon-wrap"><i data-lucide="plane"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/airport.png" alt="" draggable="false"></div>
           <span class="loc-name">Flughafen</span>
           <span class="loc-stats">Ausdauer · Soziales</span>
         </button>
         <button class="loc-btn" data-loc="restaurant" onclick="clickLoc('restaurant')">
-          <div class="loc-icon-wrap"><i data-lucide="utensils"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/restaurant.png" alt="" draggable="false"></div>
           <span class="loc-name">Restaurant</span>
           <span class="loc-stats">Soziales · Kreativ</span>
         </button>
         <button class="loc-btn" data-loc="temple" onclick="clickLoc('temple')">
-          <div class="loc-icon-wrap"><i data-lucide="church"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/temple.png" alt="" draggable="false"></div>
           <span class="loc-name">Tempel</span>
           <span class="loc-stats">Achtsamkeit · Wissen</span>
         </button>
         <button class="loc-btn" data-loc="university" onclick="clickLoc('university')">
-          <div class="loc-icon-wrap"><i data-lucide="graduation-cap"></i></div>
+          <div class="loc-icon-wrap"><img class="loc-img" src="icons/university.png" alt="" draggable="false"></div>
           <span class="loc-name">Universität</span>
           <span class="loc-stats">Wissen · Soziales</span>
         </button>
