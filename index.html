@@ -113,6 +113,9 @@ hr.divider {
 .av-meta { flex: 1; min-width: 0; }
 .av-name { font-size: .95rem; font-weight: 700; color: var(--gold); }
 .av-level { font-size: .67rem; color: var(--t2); margin-top: 2px; }
+.av-profile-info { font-size: .65rem; color: var(--t2); margin-top: 2px; min-height: 14px; }
+.edit-btn { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 2px 5px; cursor: pointer; display: flex; align-items: center; transition: all .2s; }
+.edit-btn:hover { border-color: var(--gold); color: var(--gold); }
 .xp-track { background: var(--border); border-radius: 99px; height: 5px; overflow: hidden; margin-top: 5px; }
 .xp-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gdim), var(--gold)); transition: width .6s ease; }
 
@@ -642,6 +645,26 @@ hr.divider {
 }
 .modal-close:hover { border-color: var(--gold); color: var(--gold); }
 
+/* Profile form */
+.pf-row { display: flex; flex-direction: column; gap: 5px; }
+.pf-label { font-size: .68rem; font-weight: 600; color: var(--t2); text-transform: uppercase; letter-spacing: .05em; }
+.pf-input {
+  background: var(--s2); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); padding: 9px 12px; font-size: .82rem; font-family: inherit;
+  width: 100%; outline: none; transition: border-color .2s;
+}
+.pf-input:focus { border-color: var(--gold); }
+.pf-input option, .pf-input optgroup { background: var(--s2); color: var(--text); }
+.lang-radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.lang-radio {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--s2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 10px; font-size: .75rem; color: var(--t2); cursor: pointer;
+  transition: all .2s;
+}
+.lang-radio:has(input:checked) { border-color: var(--gold); color: var(--gold); background: var(--s3); }
+.lang-radio input[type=radio] { display: none; }
+
 .type-lbl {
   font-size: .63rem;
   text-transform: uppercase;
@@ -823,7 +846,11 @@ hr.divider {
         <i data-lucide="user-round"></i>
       </div>
       <div class="av-meta">
-        <div class="av-name">Wanderer</div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="av-name" id="charName">Wanderer</div>
+          <button class="edit-btn" onclick="openProfile()" title="Profil bearbeiten"><i data-lucide="pencil" style="width:11px;height:11px"></i></button>
+        </div>
+        <div class="av-profile-info" id="profileInfo"></div>
         <div class="av-level" id="avatarLevel">Level 1 · 0/50 XP</div>
         <div class="xp-track"><div class="xp-fill" id="xpBar" style="width:0%"></div></div>
       </div>
@@ -1126,10 +1153,106 @@ hr.divider {
   </div>
 </div>
 
+<!-- PROFILE OVERLAY -->
+<div class="overlay hidden" id="profileOv" onclick="bgClose(event,'profileOv')">
+  <div class="big-modal" style="max-width:440px">
+    <div class="modal-hdr">
+      <div class="modal-title">Dein Charakter</div>
+      <button class="modal-close" onclick="hidePanel('profileOv')">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:13px">
+      <div class="pf-row">
+        <label class="pf-label">Name</label>
+        <input class="pf-input" id="pf-name" type="text" placeholder="Dein Name" maxlength="32">
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">Alter (real)</label>
+        <input class="pf-input" id="pf-age" type="number" placeholder="z.B. 24" min="1" max="120">
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">Stadt</label>
+        <input class="pf-input" id="pf-city" type="text" placeholder="z.B. Wien" maxlength="64">
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">Nationalität</label>
+        <select class="pf-input" id="pf-nation">
+          <option value="">– wählen –</option>
+          <optgroup label="DACH">
+            <option value="🇦🇹 Österreich">🇦🇹 Österreich</option>
+            <option value="🇩🇪 Deutschland">🇩🇪 Deutschland</option>
+            <option value="🇨🇭 Schweiz">🇨🇭 Schweiz</option>
+          </optgroup>
+          <optgroup label="Europa">
+            <option value="🇬🇧 Großbritannien">🇬🇧 Großbritannien</option>
+            <option value="🇫🇷 Frankreich">🇫🇷 Frankreich</option>
+            <option value="🇮🇹 Italien">🇮🇹 Italien</option>
+            <option value="🇪🇸 Spanien">🇪🇸 Spanien</option>
+            <option value="🇵🇹 Portugal">🇵🇹 Portugal</option>
+            <option value="🇳🇱 Niederlande">🇳🇱 Niederlande</option>
+            <option value="🇧🇪 Belgien">🇧🇪 Belgien</option>
+            <option value="🇵🇱 Polen">🇵🇱 Polen</option>
+            <option value="🇨🇿 Tschechien">🇨🇿 Tschechien</option>
+            <option value="🇸🇰 Slowakei">🇸🇰 Slowakei</option>
+            <option value="🇭🇺 Ungarn">🇭🇺 Ungarn</option>
+            <option value="🇭🇷 Kroatien">🇭🇷 Kroatien</option>
+            <option value="🇷🇴 Rumänien">🇷🇴 Rumänien</option>
+            <option value="🇷🇸 Serbien">🇷🇸 Serbien</option>
+            <option value="🇸🇮 Slowenien">🇸🇮 Slowenien</option>
+            <option value="🇸🇪 Schweden">🇸🇪 Schweden</option>
+            <option value="🇳🇴 Norwegen">🇳🇴 Norwegen</option>
+            <option value="🇩🇰 Dänemark">🇩🇰 Dänemark</option>
+            <option value="🇫🇮 Finnland">🇫🇮 Finnland</option>
+            <option value="🇬🇷 Griechenland">🇬🇷 Griechenland</option>
+            <option value="🇹🇷 Türkei">🇹🇷 Türkei</option>
+          </optgroup>
+          <optgroup label="Amerika">
+            <option value="🇺🇸 USA">🇺🇸 USA</option>
+            <option value="🇨🇦 Kanada">🇨🇦 Kanada</option>
+            <option value="🇲🇽 Mexiko">🇲🇽 Mexiko</option>
+            <option value="🇧🇷 Brasilien">🇧🇷 Brasilien</option>
+            <option value="🇦🇷 Argentinien">🇦🇷 Argentinien</option>
+          </optgroup>
+          <optgroup label="Asien & Ozeanien">
+            <option value="🇯🇵 Japan">🇯🇵 Japan</option>
+            <option value="🇰🇷 Südkorea">🇰🇷 Südkorea</option>
+            <option value="🇨🇳 China">🇨🇳 China</option>
+            <option value="🇮🇳 Indien">🇮🇳 Indien</option>
+            <option value="🇦🇺 Australien">🇦🇺 Australien</option>
+          </optgroup>
+          <optgroup label="Naher Osten & Afrika">
+            <option value="🇸🇦 Saudi-Arabien">🇸🇦 Saudi-Arabien</option>
+            <option value="🇦🇪 VAE">🇦🇪 VAE</option>
+            <option value="🇮🇱 Israel">🇮🇱 Israel</option>
+            <option value="🇪🇬 Ägypten">🇪🇬 Ägypten</option>
+            <option value="🇲🇦 Marokko">🇲🇦 Marokko</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="pf-row">
+        <label class="pf-label">Muttersprache <span style="color:var(--muted);font-size:.58rem">(nur eine)</span></label>
+        <div class="lang-radio-group" id="pf-lang-group">
+          <label class="lang-radio"><input type="radio" name="pf-lang" value="de"> 🇩🇪 Deutsch</label>
+          <label class="lang-radio"><input type="radio" name="pf-lang" value="en"> 🇬🇧 Englisch</label>
+          <label class="lang-radio"><input type="radio" name="pf-lang" value="fr"> 🇫🇷 Französisch</label>
+          <label class="lang-radio"><input type="radio" name="pf-lang" value="es"> 🇪🇸 Spanisch</label>
+          <label class="lang-radio"><input type="radio" name="pf-lang" value="ja"> 🇯🇵 Japanisch</label>
+          <label class="lang-radio"><input type="radio" name="pf-lang" value="ar"> 🇸🇦 Arabisch</label>
+        </div>
+      </div>
+      <button class="cont-btn" onclick="saveProfile()" style="margin-top:4px">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 // ─── STATE ────────────────────────────────────────────────
+// Profile persists in localStorage independent of game state
+const PROFILE_KEY='nomad_profile';
+const DEFAULT_PROFILE={name:'Wanderer',age:null,city:'',nationality:'',motherTongue:'de'};
+let profileData = JSON.parse(localStorage.getItem(PROFILE_KEY)||'null') || {...DEFAULT_PROFILE};
+
 const S = {
   xp:0, level:1,
   stats:{ strength:0,knowledge:0,endurance:0,social:0,creativity:0,mindfulness:0 },
@@ -1509,6 +1632,41 @@ function renderFriends(){
   document.getElementById('friendCount').textContent=S.friends.length;
 }
 
+// ─── PROFILE ──────────────────────────────────────────────
+function openProfile(){
+  document.getElementById('pf-name').value   = profileData.name||'';
+  document.getElementById('pf-age').value    = profileData.age||'';
+  document.getElementById('pf-city').value   = profileData.city||'';
+  document.getElementById('pf-nation').value = profileData.nationality||'';
+  const mt = profileData.motherTongue||'de';
+  const radio = document.querySelector(`input[name="pf-lang"][value="${mt}"]`);
+  if(radio) radio.checked = true;
+  document.getElementById('profileOv').classList.remove('hidden');
+}
+function saveProfile(){
+  const name  = document.getElementById('pf-name').value.trim()||'Wanderer';
+  const age   = parseInt(document.getElementById('pf-age').value)||null;
+  const city  = document.getElementById('pf-city').value.trim();
+  const nat   = document.getElementById('pf-nation').value;
+  const mtEl  = document.querySelector('input[name="pf-lang"]:checked');
+  const mt    = mtEl ? mtEl.value : 'de';
+  profileData = {name, age, city, nationality:nat, motherTongue:mt};
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profileData));
+  // Apply mother tongue — set it as known
+  Object.keys(S.languages).forEach(k => S.languages[k] = (k===mt));
+  updateUI();
+  hidePanel('profileOv');
+  toast(`✓ Profil gespeichert`);
+}
+function renderProfileInfo(){
+  document.getElementById('charName').textContent = profileData.name||'Wanderer';
+  const parts=[];
+  if(profileData.age)         parts.push(`${profileData.age} J.`);
+  if(profileData.city)        parts.push(profileData.city);
+  if(profileData.nationality) parts.push(profileData.nationality);
+  document.getElementById('profileInfo').textContent = parts.join(' · ');
+}
+
 function updateFriendBadge(){
   const b=document.getElementById('friendBadge');
   b.style.display=S.friends.length?'inline':'none';
@@ -1695,6 +1853,7 @@ function updateUI(){
   const n=S.level*XP_PER_LEVEL;
   document.getElementById('xpBar').style.width=(S.xp/n*100)+'%';
   document.getElementById('avatarLevel').textContent=`Level ${S.level} · ${S.xp}/${n} XP`;
+  renderProfileInfo();
 
   // Update avatar background color by level (don't touch the Lucide icon inside)
   const av=document.getElementById('avatarIcon');
@@ -1831,8 +1990,16 @@ function updateLocButtons(){
   });
 }
 
+// Apply saved mother tongue to language state
+if(profileData.motherTongue) S.languages[profileData.motherTongue]=true;
+
 updateUI(); updateEventIndicators();
 lucide.createIcons();
+
+// First-time setup: open profile if name is still default
+if(profileData.name==='Wanderer' && !profileData.age && !profileData.city){
+  setTimeout(()=>openProfile(), 600);
+}
 </script>
 </body>
 </html>
