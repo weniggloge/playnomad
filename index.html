@@ -604,16 +604,16 @@ hr.divider {
 .gp-amount { font-size:2rem;font-weight:800;color:var(--gold); }
 .gp-label  { font-size:.68rem;color:var(--muted);margin-top:2px; }
 /* Inventory */
-.inv-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--s2);margin-bottom:8px;border-left:3px solid #6b7280; }
+.inv-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:3px;background:var(--s2);margin-bottom:8px;border-left:3px solid #6b7280; }
 .inv-item.common    { border-left-color:#6b7280; }
 .inv-item.uncommon  { border-left-color:#3b82f6; }
 .inv-item.epic      { border-left-color:#a855f7; }
 .inv-item.legendary { border-left-color:#f59e0b;background:rgba(245,158,11,.08); }
 .inv-icon { font-size:1.3rem;flex-shrink:0; }
 .inv-info { flex:1;min-width:0; }
-.inv-name { font-size:.78rem;font-weight:600;color:var(--fg); }
+.inv-name { font-size:.78rem;font-weight:600;color:var(--text); }
 .inv-rar  { font-size:.62rem;color:var(--muted);text-transform:capitalize;margin-top:1px; }
-.inv-sell { background:var(--s3);border:1px solid var(--s3);border-radius:8px;color:var(--fg);font-size:.75rem;font-weight:600;padding:6px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0; }
+.inv-sell { background:var(--s3);border:1px solid var(--s3);border-radius:3px;color:var(--text);font-size:.75rem;font-weight:600;padding:6px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0; }
 .inv-sell:hover { border-color:var(--gold);color:var(--gold); }
 .cont-btn {
   display: block;
@@ -852,6 +852,227 @@ hr.divider {
   .layout { grid-template-columns: 1fr; }
   .bot-bar { position: fixed; left: 0; right: 0; max-width: 100%; }
 }
+
+/* ══════════════════════════════════════════
+   DESIGN OVERHAUL — Angular + Emotional
+══════════════════════════════════════════ */
+
+/* New accent variables */
+:root {
+  --cyan: #00e5ff;
+  --violet: #7b2fff;
+  --red-hot: #ff3d2e;
+}
+
+/* ── ANGULAR BORDER-RADIUS OVERRIDE ── */
+.panel, .log-panel { border-radius: 4px !important; }
+.big-modal, .dung-modal, .friends-modal, .event-card, .outcome-card, .idle-choose { border-radius: 6px !important; }
+.dc, .comp-slot, .nearby-player, .friend-card, .idle-panel, .ic-time-btn { border-radius: 3px !important; }
+.loc-btn { border-radius: 3px !important; }
+.np-btn, .coll-open-btn, .gps-btn, .ic-cancel, .idle-cancel, .opt-btn, .cont-btn { border-radius: 3px !important; }
+.art-chip, .lang-tag, .modal-close, .edit-btn { border-radius: 2px !important; }
+.trait-tag, .ev-label, .fx { border-radius: 2px !important; }
+.stat-icon { border-radius: 4px !important; }
+.pf-input, .lang-radio { border-radius: 3px !important; }
+.cc { border-radius: 3px !important; }
+#toast { border-radius: 3px !important; }
+.gps-loc-pill { border-radius: 3px !important; }
+.np-icon { border-radius: 4px !important; }
+
+/* ── PANEL — gradient border ── */
+.panel {
+  border: 1px solid transparent !important;
+  background: linear-gradient(var(--s1), var(--s1)) padding-box,
+              linear-gradient(135deg, rgba(0,229,255,.12), rgba(123,47,255,.08)) border-box !important;
+}
+.log-panel {
+  border: 1px solid transparent !important;
+  background: linear-gradient(var(--s1), var(--s1)) padding-box,
+              linear-gradient(135deg, rgba(0,229,255,.08), rgba(123,47,255,.06)) border-box !important;
+}
+
+/* ── STAT BARS — glow effect ── */
+.stat-fill.str { box-shadow: 0 0 6px #f87171aa; }
+.stat-fill.kno { box-shadow: 0 0 6px #60a5faaa; }
+.stat-fill.end { box-shadow: 0 0 6px #34d399aa; }
+.stat-fill.soc { box-shadow: 0 0 6px #c084fcaa; }
+.stat-fill.cre { box-shadow: 0 0 6px #fbbf24aa; }
+.stat-fill.min { box-shadow: 0 0 6px #22d3eeaa; }
+
+/* ── XP BAR — shimmer ── */
+.xp-fill {
+  background: linear-gradient(90deg, var(--gdim), var(--gold), rgba(255,255,255,.4), var(--gold)) !important;
+  background-size: 200% auto !important;
+  animation: xpShimmer 2.4s linear infinite !important;
+}
+@keyframes xpShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── IDLE BAR — pulse when active ── */
+.idle-fill.idle-active {
+  animation: idlePulse 2s ease-in-out infinite;
+}
+@keyframes idlePulse {
+  0%, 100% { filter: brightness(1); box-shadow: 0 0 0 0 rgba(240,164,42,0); }
+  50%       { filter: brightness(1.35); box-shadow: 0 0 7px 2px rgba(240,164,42,.4); }
+}
+
+/* ── BUTTON TAP — tactile press ── */
+@keyframes btnTap {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+.loc-btn:active:not(:disabled),
+.opt-btn:active:not(:disabled),
+.ic-time-btn:active,
+.cont-btn:active,
+.bot-tab:active {
+  animation: btnTap .18s ease;
+}
+
+/* ── STAT BAR POP — on stat increase ── */
+@keyframes statPop {
+  0%   { transform: scaleX(1); }
+  40%  { transform: scaleX(1.05); }
+  70%  { transform: scaleX(0.98); }
+  100% { transform: scaleX(1); }
+}
+.stat-fill.stat-popped {
+  animation: statPop .5s ease;
+  transform-origin: left;
+}
+
+/* ── LOOT ITEM SLIDE IN ── */
+@keyframes lootSlide {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── DUNGEON OUTCOME ── */
+@keyframes dungeonWin {
+  0%,100% { box-shadow: 0 0 0 0 rgba(31,212,122,0); }
+  30%     { box-shadow: 0 0 0 14px rgba(31,212,122,.45); }
+  70%     { box-shadow: 0 0 0 28px rgba(31,212,122,0); }
+}
+@keyframes dungeonLoss {
+  0%,100% { transform: translateX(0); }
+  15%     { transform: translateX(-8px); }
+  35%     { transform: translateX(7px); }
+  55%     { transform: translateX(-5px); }
+  75%     { transform: translateX(3px); }
+}
+.dung-win  { animation: dungeonWin  .9s ease; }
+.dung-loss { animation: dungeonLoss .5s ease; }
+
+/* ── RANK UP FLARE ── */
+@keyframes rankFlare {
+  0%   { box-shadow: 0 0 0 0 rgba(240,164,42,0); }
+  25%  { box-shadow: 0 0 0 14px rgba(240,164,42,.5); }
+  65%  { box-shadow: 0 0 0 32px rgba(240,164,42,0); }
+  100% { box-shadow: 0 0 0 0 rgba(240,164,42,0); }
+}
+@keyframes medalBounce {
+  0%   { transform: scale(0.3) rotate(-20deg); opacity: 0; }
+  55%  { transform: scale(1.2) rotate(6deg); opacity: 1; }
+  80%  { transform: scale(0.94) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.rank-flare { animation: rankFlare 1.1s ease-out; }
+
+/* ── LEGENDARY GLOW ── */
+.cc.legendary { box-shadow: 0 0 12px rgba(240,164,42,.3), inset 0 0 20px rgba(240,164,42,.04) !important; }
+.comp-slot.c-legendary { box-shadow: 0 0 10px rgba(240,164,42,.25) !important; }
+.inv-item.legendary { box-shadow: 0 0 8px rgba(245,158,11,.2); }
+
+/* ── LEVEL UP FLASH ── */
+@keyframes levelFlash {
+  0%   { opacity: 0; }
+  15%  { opacity: .18; }
+  100% { opacity: 0; }
+}
+#levelFlash {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+  background: var(--gold); opacity: 0;
+}
+#levelFlash.flash { animation: levelFlash .5s ease-out; }
+
+/* ── BOTTOM BAR — active tab highlight ── */
+.bot-tab.active { color: var(--gold); }
+.bot-tab.active .lucide { stroke: var(--gold); }
+
+/* ── STREAK BADGE ── */
+.streak-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: linear-gradient(135deg, rgba(255,61,46,.15), rgba(240,164,42,.15));
+  border: 1px solid rgba(240,164,42,.3);
+  border-radius: 2px;
+  padding: 2px 8px;
+  font-size: .6rem; font-weight: 700; color: var(--gold);
+  letter-spacing: .04em;
+}
+
+/* ── FRIEND CARD IMPROVED ── */
+.friend-card {
+  background: var(--s2);
+  border: 1px solid rgba(31,212,122,.3) !important;
+  border-left: 3px solid var(--green) !important;
+  padding: 10px 12px !important;
+  display: flex; align-items: center; gap: 10px;
+}
+.fc-icon { font-size: 1.4rem; flex-shrink: 0; }
+.fc-body { flex: 1; min-width: 0; }
+.fc-name { font-size: .8rem; font-weight: 700; color: var(--text); }
+.fc-lang { font-size: .63rem; color: var(--muted); margin-top: 1px; }
+.fc-status { font-size: .59rem; margin-top: 3px; }
+.fc-remove {
+  background: none; border: 1px solid var(--border); border-radius: 2px;
+  color: var(--muted); font-size: .6rem; padding: 3px 7px; cursor: pointer;
+  transition: all .2s; font-family: inherit; flex-shrink: 0;
+}
+.fc-remove:hover { border-color: var(--red); color: var(--red); }
+
+/* ── NEARBY PLAYER IMPROVED ── */
+.np-bar-fill { background: linear-gradient(90deg, var(--violet), var(--cyan)) !important; }
+.np-btn:hover { border-color: var(--cyan) !important; color: var(--cyan) !important; }
+
+/* ── SHOP ITEMS ── */
+.shop-item {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: 3px; padding: 12px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 12px;
+}
+.shop-item-icon { font-size: 1.5rem; flex-shrink: 0; }
+.shop-item-body { flex: 1; min-width: 0; }
+.shop-item-name { font-size: .8rem; font-weight: 700; color: var(--text); }
+.shop-item-desc { font-size: .63rem; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+.shop-item-price {
+  font-size: .75rem; font-weight: 700; color: var(--gold);
+  white-space: nowrap; flex-shrink: 0;
+}
+.shop-buy-btn {
+  background: linear-gradient(135deg, var(--gdim), var(--gold));
+  color: #000; border: none; border-radius: 2px;
+  padding: 5px 12px; font-size: .68rem; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: opacity .2s;
+  display: block; margin-top: 6px;
+}
+.shop-buy-btn:hover { opacity: .85; }
+.shop-buy-btn:disabled { opacity: .35; cursor: not-allowed; background: var(--border); color: var(--muted); }
+.shop-tabs { display: flex; gap: 0; margin-bottom: 14px; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+.shop-tab-btn {
+  flex: 1; padding: 8px; background: none; border: none;
+  color: var(--muted); font-size: .68rem; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all .2s;
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.shop-tab-btn.active { background: var(--s3); color: var(--gold); }
+
+/* ── WEEKLY CHALLENGE ── */
+.weekly-bar-bg { background: var(--border); border-radius: 2px; height: 4px; overflow: hidden; margin-top: 5px; }
+.weekly-bar-fill { height: 100%; background: linear-gradient(90deg, var(--violet), var(--cyan)); transition: width .5s; }
 </style>
 </head>
 <body>
@@ -1077,7 +1298,7 @@ hr.divider {
     <span class="badge" id="invBadge" style="display:none"></span>
   </button>
   <button class="bot-tab" onclick="openHaendler()">
-    <i data-lucide="coins"></i>
+    <i data-lucide="wallet"></i>
     Händler
   </button>
 </div>
@@ -1191,7 +1412,7 @@ hr.divider {
       <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Charakterzug</div>
       <button class="modal-close" onclick="hidePanel('traitInfoOv')">✕</button>
     </div>
-    <div id="traitName" style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:6px"></div>
+    <div id="traitName" style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:6px"></div>
     <div id="traitDesc" style="font-size:.73rem;color:var(--muted);margin-bottom:14px;line-height:1.6;font-style:italic"></div>
     <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Permanente Boni</div>
     <div id="traitBonus" style="font-size:.8rem;font-weight:600;color:#4ade80;margin-bottom:10px"></div>
@@ -1252,15 +1473,28 @@ hr.divider {
       <div class="modal-title">Händler</div>
       <button class="modal-close" onclick="hidePanel('haendlerOv')">✕</button>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border-radius:10px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border-radius:3px;margin-bottom:12px">
       <span style="font-size:1.4rem">🧙</span>
-      <div>
+      <div style="flex:1;min-width:0">
         <div style="font-size:.75rem;font-weight:600">Alter Krämer</div>
-        <div style="font-size:.65rem;color:var(--muted);margin-top:1px">„Was hast du mitgebracht? Ich zahle fair."</div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:1px">„Was hast du dabei? Ich zahle fair."</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:.55rem;color:var(--muted)">Schattengold</div>
+        <div style="font-size:1rem;font-weight:800;color:var(--gold)" class="gold-display">0 ◈</div>
       </div>
     </div>
-    <div id="haendlerList"></div>
-    <button onclick="sellAll()" style="margin-top:14px;width:100%;padding:11px;background:var(--s2);border:1px solid var(--gold);border-radius:10px;color:var(--gold);font-weight:600;font-size:.8rem;cursor:pointer">Alles verkaufen</button>
+    <div class="shop-tabs">
+      <button class="shop-tab-btn active" id="shopTabSell" onclick="switchShopTab('sell')">Verkaufen</button>
+      <button class="shop-tab-btn" id="shopTabBuy" onclick="switchShopTab('buy')">Kaufen</button>
+    </div>
+    <div id="shopSellPane">
+      <div id="haendlerList"></div>
+      <button onclick="sellAll()" style="margin-top:12px;width:100%;padding:11px;background:var(--s2);border:1px solid var(--gold);border-radius:3px;color:var(--gold);font-weight:600;font-size:.8rem;cursor:pointer;font-family:inherit">Alles verkaufen</button>
+    </div>
+    <div id="shopBuyPane" style="display:none">
+      <div id="shopItemList"></div>
+    </div>
   </div>
 </div>
 
@@ -1375,7 +1609,8 @@ const S = {
   seen:new Set(),
   idle:null,
   dungeons:[],
-  friends:[],    // {id,name,icon,lang}
+  friends:[],    // {id,name,icon,lang,langName,flag,since}
+  proximity:{},  // {playerId → points 0-100} — persisted so progress isn't lost on reload
   lastLoc:null,
   nearbyLocs:null,
   userLat:null, userLng:null,
@@ -1383,6 +1618,12 @@ const S = {
   gold:0,
   inventory:[],  // [{uid, id, n, r, i, val}]
   ranksAchieved:new Set(),
+  streak:0,          // consecutive days played
+  lastLogin:'',      // ISO date string YYYY-MM-DD
+  xpBoost:false,     // active XP boost (from Händler shop)
+  compBoost:false,   // active companion drop boost
+  stadtplan:false,   // permanent dungeon-without-GPS unlock
+  bagUpgrades:0,     // extra inventory cap upgrades (max 2)
 };
 const XP_PER_LEVEL=50, STAT_MAX=100, ART_MAX_STACK=10, INV_MAX=60;
 
@@ -1769,6 +2010,7 @@ function startIdle(locId, ti) {
   document.getElementById('idleWrap').style.display='block';
   document.getElementById('idleLocName').textContent=`${loc.icon} ${loc.name} – ${t.label}`;
   addLog(loc.icon,`Idle gestartet: <span class="lg">${loc.name} – ${t.label}</span>`);
+  document.getElementById('idleBar').classList.add('idle-active');
   updateIdleBar();
   idleIv=setInterval(updateIdleBar,500);
   updateEventIndicators();
@@ -1789,6 +2031,7 @@ function cancelIdle() { if(!S.idle) return; const e=Date.now()-(S.idle.endTime-S
 function finishIdle(partial=false, ratio=1) {
   clearInterval(idleIv); idleIv=null;
   const idle=S.idle; S.idle=null;
+  document.getElementById('idleBar').classList.remove('idle-active');
   document.getElementById('idleWrap').style.display='none';
   document.querySelectorAll('.loc-btn').forEach(b=>b.disabled=false);
   S.lastLoc = idle.locId; // player "is here" — enables nearby dungeons
@@ -1831,8 +2074,9 @@ function finishIdle(partial=false, ratio=1) {
 
   // Companion (very rare)
   const compCands=Object.entries(CD).filter(([id,c])=>!S.owned.has(id)&&c.loc.includes(idle.locId)&&meetsReq(c.req));
+  const compMult=(S.compBoost?(S.compBoost=false,1.5):1)*(partial?0.5:1);
   for(const rar of ['legendary','epic','uncommon','common']){
-    const rate=COMP_RATES[rar]*(partial?0.5:1);
+    const rate=COMP_RATES[rar]*compMult;
     const ofR=compCands.filter(([,c])=>c.r===rar);
     if(ofR.length&&Math.random()<rate){
       const[id,c]=ofR[Math.floor(Math.random()*ofR.length)];
@@ -1874,46 +2118,76 @@ function finishIdle(partial=false, ratio=1) {
 function openFriends(){ renderFriends(); document.getElementById('friendsOv').classList.remove('hidden'); }
 
 function simulateProximity(pid) {
-  const p=NEARBY.find(x=>x.id===pid); if(!p||p.friend) return;
+  const p=NEARBY.find(x=>x.id===pid);
+  if(!p) return;
+  // Already a friend — no action
+  if(S.friends.find(f=>f.id===pid)){ p.friend=true; renderFriends(); return; }
   const pts=15+Math.random()*20; // 15-35 points per click
-  p.proximity=Math.min(100,p.proximity+pts);
-  if(p.proximity>=100&&!p.friend){
-    p.friend=true; p.proximity=100;
-    S.friends.push({id:p.id,name:p.name,icon:p.icon,lang:p.lang,langName:p.langName,flag:p.flag});
+  S.proximity[pid]=Math.min(100,(S.proximity[pid]||0)+pts);
+  p.proximity=S.proximity[pid];
+  if(p.proximity>=100){
+    p.friend=true; p.proximity=100; S.proximity[pid]=100;
+    const since=new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    S.friends.push({id:p.id,name:p.name,icon:p.icon,lang:p.lang,langName:p.langName,flag:p.flag,since});
     toast(`🤝 Neue Freundschaft: ${p.icon} ${p.name}! Spricht ${p.flag} ${p.langName}.`);
     addLog('🤝',`Neue Freundschaft: <span class="lg">${p.name}</span> – spricht ${p.flag} ${p.langName}`);
     updateFriendBadge();
     updateUI();
   }
+  saveState();
   renderFriends();
 }
 
 function renderFriends(){
   const nl=document.getElementById('nearbyList'); nl.innerHTML='';
   NEARBY.forEach(p=>{
+    const isFriend=!!S.friends.find(f=>f.id===p.id);
+    const prox=S.proximity[p.id]||0;
     const div=document.createElement('div'); div.className='nearby-player';
-    const isFriend=p.friend;
     div.innerHTML=`<div class="np-header">
       <div class="np-icon">${p.icon}</div>
-      <div>
-        <div class="np-name">${p.name} ${isFriend?'<span style="color:var(--green);font-size:.65rem">✓ Freund</span>':''}</div>
-        <div class="np-lang">${p.flag} spricht ${p.langName}</div>
+      <div style="flex:1;min-width:0">
+        <div class="np-name">${p.name}${isFriend?' <span style="color:var(--green);font-size:.62rem;font-weight:700">✓ FREUND</span>':''}</div>
+        <div class="np-lang">${p.flag} ${p.langName}</div>
       </div>
     </div>
-    <div class="np-bar-wrap">
-      <div class="np-bar-lbl"><span>Nähe-Zeit</span><span>${Math.round(p.proximity)}%</span></div>
-      <div class="np-bar-bg"><div class="np-bar-fill" style="width:${p.proximity}%"></div></div>
-    </div>
-    <button class="np-btn" onclick="simulateProximity('${p.id}')" ${isFriend?'disabled':''}>
-      ${isFriend?'✓ Befreundet':'+ Zeit in der Nähe simulieren'}
+    ${!isFriend?`<div class="np-bar-wrap">
+      <div class="np-bar-lbl"><span>Nähe-Fortschritt</span><span style="color:${prox>=80?'var(--green)':'var(--muted)'}">${Math.round(prox)}%</span></div>
+      <div class="np-bar-bg"><div class="np-bar-fill" style="width:${prox}%"></div></div>
+    </div>`:''}
+    <button class="np-btn" onclick="simulateProximity('${p.id}')" ${isFriend?'disabled':''} style="${isFriend?'color:var(--green);border-color:rgba(31,212,122,.3)':''}">
+      ${isFriend?'✓ Befreundet':'⏱ Zeit zusammen simulieren'}
     </button>`;
     nl.appendChild(div);
   });
   const fl=document.getElementById('friendList');
-  fl.innerHTML=S.friends.length
-    ?S.friends.map(f=>`<div class="friend-card"><div class="fc-icon">${f.icon}</div><div><div class="fc-name">${f.name}</div><div class="fc-lang">${f.flag} ${f.langName}</div>${S.languages[f.lang]?`<div class="fc-lang-learn" style="color:#4ade80">✓ Sprache bekannt</div>`:`<div class="fc-lang-learn" style="color:var(--muted)">Sprache noch unbekannt</div>`}</div></div>`).join('')
-    :'<span style="font-size:.68rem;color:var(--muted)">Noch keine Freundschaften.</span>';
+  if(!S.friends.length){
+    fl.innerHTML='<div style="text-align:center;padding:20px 0;font-size:.7rem;color:var(--muted)">Noch keine Freunde.<br><span style="font-size:.62rem">Simuliere Zeit in der Nähe oben.</span></div>';
+  } else {
+    fl.innerHTML=S.friends.map(f=>`
+      <div class="friend-card">
+        <div class="fc-icon">${f.icon}</div>
+        <div class="fc-body">
+          <div class="fc-name">${f.name}</div>
+          <div class="fc-lang">${f.flag} ${f.langName}</div>
+          <div class="fc-status">${S.languages[f.lang]
+            ?'<span style="color:var(--green)">✓ Sprache gelernt</span>'
+            :'<span style="color:var(--muted)">· Sprache noch unbekannt</span>'}${f.since?` · seit ${f.since}`:''}
+          </div>
+        </div>
+        <button class="fc-remove" onclick="removeFriend('${f.id}')">Entfernen</button>
+      </div>`).join('');
+  }
   document.getElementById('friendCount').textContent=S.friends.length;
+}
+
+function removeFriend(id){
+  S.friends=S.friends.filter(f=>f.id!==id);
+  S.proximity[id]=0;
+  const p=NEARBY.find(x=>x.id===id);
+  if(p){ p.friend=false; p.proximity=0; }
+  saveState(); updateFriendBadge(); renderFriends();
+  toast('👋 Freundschaft beendet.');
 }
 
 // ─── PROFILE ──────────────────────────────────────────────
@@ -1975,9 +2249,10 @@ function renderDungeons(){
   const l=document.getElementById('dungList'); l.innerHTML='';
   const hdr=document.createElement('div');
   hdr.style.cssText='font-size:.6rem;color:var(--muted);margin-bottom:10px;padding:6px 8px;background:var(--s2);border-radius:7px;line-height:1.6';
-  const gpsReady=S.userLat!==null&&S.dungeonCoords!==null;
+  const gpsReady=S.stadtplan||(S.userLat!==null&&S.dungeonCoords!==null);
   hdr.innerHTML=`🗓️ Dungeon-Positionen täglich neu (Mitternacht)<br>`
     +(S.level<10?`🔒 <strong style="color:var(--red)">Ab Level 10 zugänglich</strong>`
+      :S.stadtplan?`🗺️ <strong style="color:var(--gold)">Stadtplan aktiv · Überall zugänglich</strong>`
       :gpsReady?`📡 GPS aktiv · Innerhalb 150m eintreten`
       :`📡 <strong style="color:var(--gold)">GPS-Scan erforderlich für Zugang</strong>`);
   l.appendChild(hdr);
@@ -1987,11 +2262,10 @@ function renderDungeons(){
     const pct=Math.min(95,Math.round((d.base+(pow/100)*0.4)*100));
     const cls=pct>60?'hi':pct>35?'mi':'lo';
     let dist=null, inRange=false, dir='';
-    if(gpsReady){
+    if(S.stadtplan){ inRange=true; }
+    else if(gpsReady&&S.dungeonCoords){
       const coord=S.dungeonCoords[idx];
-      dist=Math.round(haversine(S.userLat,S.userLng,coord.lat,coord.lng));
-      inRange=dist<=150;
-      dir=dungeonDirection(S.userLat,S.userLng,coord.lat,coord.lng);
+      if(coord){ dist=Math.round(haversine(S.userLat,S.userLng,coord.lat,coord.lng)); inRange=dist<=150; dir=dungeonDirection(S.userLat,S.userLng,coord.lat,coord.lng); }
     }
     const levelOk=S.level>=10;
     const locked=!running&&(!levelOk||!inRange);
@@ -1999,8 +2273,9 @@ function renderDungeons(){
     div.className='dc'+(running?' running':locked?' locked':'');
     let locationLine='';
     if(!levelOk) locationLine=`<div class="dc-prob lo">🔒 Level 10 erforderlich (du: ${S.level})</div>`;
+    else if(S.stadtplan) locationLine=`<div class="dc-prob hi">🗺️ Stadtplan aktiv – Zugang überall</div>`;
     else if(!gpsReady) locationLine=`<div class="dc-prob lo">📡 GPS-Scan erforderlich</div>`;
-    else if(inRange) locationLine=`<div class="dc-prob hi">✓ In Reichweite (${dist}m)</div>`;
+    else if(inRange) locationLine=`<div class="dc-prob hi">✓ In Reichweite (${dist !== null ? dist+'m' : '–'})</div>`;
     else locationLine=`<div class="dc-prob mi">📍 ${dist}m · Richtung ${dir}</div>`;
     div.innerHTML=`<div class="dc-name">${d.icon} ${d.name}</div>
       <div class="dc-meta"><span>${d.diff}</span><span>+${d.xp} XP</span><span style="color:var(--gold);font-size:.6rem">immer Loot</span></div>
@@ -2015,11 +2290,13 @@ function enterDungeon(d){
   if(S.level<10){ toast('🔒 Level 10 erforderlich!'); return; }
   if(S.idle){ toast('⏳ Charakter idlet!'); return; }
   if(S.dungeons.find(x=>x.id===d.id)) return;
-  if(!S.dungeonCoords||S.userLat===null){ toast('📡 GPS-Scan zuerst!'); return; }
-  const idx=DUNGEONS.indexOf(d);
-  const coord=S.dungeonCoords[idx];
-  const dist=Math.round(haversine(S.userLat,S.userLng,coord.lat,coord.lng));
-  if(dist>150){ toast(`📍 Zu weit! ${dist}m (max 150m)`); return; }
+  if(!S.stadtplan){
+    if(!S.dungeonCoords||S.userLat===null){ toast('📡 GPS-Scan zuerst!'); return; }
+    const idx=DUNGEONS.indexOf(d);
+    const coord=S.dungeonCoords[idx];
+    const dist=Math.round(haversine(S.userLat,S.userLng,coord.lat,coord.lng));
+    if(dist>150){ toast(`📍 Zu weit! ${dist}m (max 150m)`); return; }
+  }
   S.dungeons.push({id:d.id,end:Date.now()+d.ms});
   addLog(d.icon,`Dungeon: <span class="lg">${d.name}</span> – Kampf läuft…`);
   renderDungeons();
@@ -2054,6 +2331,11 @@ function resolveDungeon(d){
   if(lootId){ const l=LOOT[lootId]; chips.push({label:`${l.i} ${l.n} (Tasche)`,type:'loot'}); }
   updateUI();
   showOutcome(ok?`⚔️ ${d.icon} ${d.name}\n\nSieg! Dein Charakter hat bestanden.`:`💀 ${d.icon} ${d.name}\n\nNiederlage – aber du findest etwas auf dem Rückweg.`,chips.length?chips:[{label:ok?'Sieg':'Rückzug',type:ok?'pos':'neg'}]);
+  // Animate outcome card
+  setTimeout(()=>{
+    const card=document.querySelector('#outcomeOv .outcome-card');
+    if(card){ card.classList.remove('dung-win','dung-loss'); void card.offsetWidth; card.classList.add(ok?'dung-win':'dung-loss'); }
+  },50);
   addLog(d.icon,`Dungeon ${ok?'✅':'❌'}: <span class="lg">${d.name}</span>`);
   saveState();
 }
@@ -2164,20 +2446,23 @@ function devBoost(){
   S.level=15; S.xp=0;
   for(const k of Object.keys(S.stats)) S.stats[k]=35;
   S.gold+=1000;
+  S.streak=Math.max(S.streak,3);
+  S.stadtplan=true; // bypass GPS for testing
   // Add sample loot
   ['drachenschuppe','schriftrolle','alte_muenze','blauer_kristall'].forEach(id=>{
-    const l=LOOT[id]; if(l&&S.inventory.length<INV_MAX) S.inventory.push({uid:Date.now()+Math.random(),id,...l});
+    const l=LOOT[id]; if(l&&S.inventory.length<INV_MAX+S.bagUpgrades*20) S.inventory.push({uid:Date.now()+Math.random(),id,...l});
   });
-  // Fake GPS so all dungeons are "in range"
+  // Fake GPS so all dungeons are "in range" (stadtplan also covers this)
   S.userLat=48.0; S.userLng=8.0;
   S.dungeonCoords=DUNGEONS.map(()=>({lat:48.0,lng:8.0}));
   updateUI(); hidePanel('profileOv');
-  toast('🛠 Dev-Boost: Level 15 · Stats 35 · 1000 ◈ · GPS simuliert');
+  toast('🛠 Dev-Boost: Level 15 · Stats 35 · 1000 ◈ · Stadtplan aktiv');
 }
 
 // ─── LOOT / INVENTORY ─────────────────────────────────────
 function dropLoot(mult){
-  if(S.inventory.length>=INV_MAX) return null;
+  const cap=INV_MAX+(S.bagUpgrades||0)*20;
+  if(S.inventory.length>=cap){ toast('🎒 Tasche voll! Beim Händler verkaufen.'); return null; }
   for(const rar of ['legendary','epic','uncommon','common']){
     const rate=LOOT_BASE[rar]*mult;
     if(Math.random()<rate){
@@ -2201,8 +2486,8 @@ function renderInventory(){
   }
   const order={legendary:0,epic:1,uncommon:2,common:3};
   const sorted=[...S.inventory].sort((a,b)=>order[a.r]-order[b.r]);
-  el.innerHTML=sorted.map(item=>`
-    <div class="inv-item ${item.r}">
+  el.innerHTML=sorted.map((item,i)=>`
+    <div class="inv-item ${item.r}" style="animation:lootSlide .3s ease ${i*30}ms both">
       <span class="inv-icon">${item.i}</span>
       <div class="inv-info">
         <div class="inv-name">${item.n}</div>
@@ -2211,7 +2496,6 @@ function renderInventory(){
     </div>`).join('');
 }
 
-function openHaendler(){ renderHaendler(); document.getElementById('haendlerOv').classList.remove('hidden'); }
 function renderHaendler(){
   const el=document.getElementById('haendlerList');
   if(!S.inventory.length){
@@ -2236,7 +2520,9 @@ let goldPopTm;
 function showGoldPop(amount){
   const el=document.getElementById('goldPop');
   document.getElementById('goldPopAmt').textContent=`+${amount} ◈`;
-  el.classList.remove('hide'); el.classList.add('show');
+  el.classList.remove('hide','show');
+  void el.offsetWidth; // force reflow to restart animation
+  el.classList.add('show');
   clearTimeout(goldPopTm);
   goldPopTm=setTimeout(()=>{ el.classList.remove('show'); el.classList.add('hide'); },1800);
 }
@@ -2255,6 +2541,61 @@ function sellAll(){
   S.gold+=total; S.inventory=[];
   renderHaendler(); renderInventory(); updateGoldDisplay(); updateUI();
   showGoldPop(total);
+}
+
+const SHOP_ITEMS = [
+  {id:'xp_boost',   icon:'⚡', name:'Erfahrungs-Boost',     desc:'Verdoppelt XP beim nächsten abgeschlossenen Idle-Session.',   price:300,  max:1, field:'xpBoost'},
+  {id:'comp_boost', icon:'🐾', name:'Begleiter-Futter',      desc:'+50% Begleiter-Chance beim nächsten Idle-Session.',           price:200,  max:99,field:'compBoost'},
+  {id:'bag_up',     icon:'🎒', name:'Rucksack-Erweiterung',  desc:'Erhöht Taschenkapazität um 20 Slots (max. 2×).',              price:750,  max:2, field:'bagUpgrades'},
+  {id:'stadtplan',  icon:'🗺️', name:'Stadtplan',             desc:'Erlaubt Dungeon-Zugang ohne GPS-Scan (permanent).',           price:1200, max:1, field:'stadtplan'},
+];
+
+function switchShopTab(tab){
+  document.getElementById('shopSellPane').style.display=tab==='sell'?'':'none';
+  document.getElementById('shopBuyPane').style.display=tab==='buy'?'':'none';
+  document.getElementById('shopTabSell').classList.toggle('active',tab==='sell');
+  document.getElementById('shopTabBuy').classList.toggle('active',tab==='buy');
+  if(tab==='buy') renderShopBuy();
+}
+
+function renderShopBuy(){
+  const el=document.getElementById('shopItemList');
+  el.innerHTML=SHOP_ITEMS.map(item=>{
+    const cur=S[item.field];
+    const owned=typeof cur==='boolean'?cur:cur>=item.max;
+    const canAfford=S.gold>=item.price;
+    return `<div class="shop-item">
+      <div class="shop-item-icon">${item.icon}</div>
+      <div class="shop-item-body">
+        <div class="shop-item-name">${item.name}</div>
+        <div class="shop-item-desc">${item.desc}</div>
+        ${typeof cur!=='boolean'&&item.max>1?`<div style="font-size:.58rem;color:var(--muted);margin-top:3px">Gekauft: ${cur}/${item.max}</div>`:''}
+        <button class="shop-buy-btn" onclick="buyShopItem('${item.id}')" ${owned||!canAfford?'disabled':''}>
+          ${owned?'✓ Aktiv / Max':'Kaufen – '+item.price+' ◈'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buyShopItem(id){
+  const item=SHOP_ITEMS.find(x=>x.id===id); if(!item) return;
+  if(S.gold<item.price){ toast('⚠️ Nicht genug Schattengold!'); return; }
+  const cur=S[item.field];
+  const owned=typeof cur==='boolean'?cur:cur>=item.max;
+  if(owned){ toast('⚠️ Bereits gekauft / aktiv.'); return; }
+  S.gold-=item.price;
+  if(typeof cur==='boolean') S[item.field]=true;
+  else S[item.field]=(cur||0)+1;
+  updateGoldDisplay(); updateUI(); renderShopBuy();
+  toast(`✅ ${item.name} aktiviert!`);
+  addLog('🛒',`Händler: <span class="lg">${item.name}</span> gekauft`);
+}
+
+function openHaendler(){
+  renderHaendler();
+  switchShopTab('sell');
+  document.getElementById('haendlerOv').classList.remove('hidden');
 }
 function updateGoldDisplay(){
   document.querySelectorAll('.gold-display').forEach(el=>{ el.textContent=S.gold+' ◈'; });
@@ -2278,17 +2619,25 @@ function showRankUp(rank){
   document.getElementById('ruName').textContent=rank.name;
   document.getElementById('ruName').style.color=rank.color;
   document.getElementById('rankUpOv').classList.remove('hidden');
+  setTimeout(()=>{
+    const card=document.querySelector('#rankUpOv .outcome-card');
+    if(card){ card.style.borderColor=rank.color; card.classList.remove('rank-flare'); void card.offsetWidth; card.classList.add('rank-flare'); }
+  },50);
 }
 
 // ─── HELPERS ──────────────────────────────────────────────
 function meetsReq(r){ return Object.entries(r||{}).every(([k,v])=>S.stats[k]>=v); }
 function wPick(arr){ let r=Math.random()*arr.reduce((s,o)=>s+o.w,0); for(const o of arr){r-=o.w;if(r<=0)return o;} return arr[arr.length-1]; }
 function addXP(n){
+  if(S.xpBoost){ n=Math.round(n*2); S.xpBoost=false; }
   S.xp+=n;
   while(S.xp>=S.level*XP_PER_LEVEL){
     S.xp-=S.level*XP_PER_LEVEL; S.level++;
     toast(`⬆️ Level ${S.level}!`);
     addLog('⬆️',`<span class="lg">Level ${S.level}!</span>`);
+    // Level-up screen flash
+    const fl=document.getElementById('levelFlash');
+    if(fl){ fl.classList.remove('flash'); void fl.offsetWidth; fl.classList.add('flash'); }
     const rank=getRank(S.level);
     const rankKey=rank.name;
     if(!S.ranksAchieved.has(rankKey) && S.level>1 && S.level%10===1){
@@ -2353,12 +2702,17 @@ const LEVEL_COLORS = [
 function updateUI(){
   for(const k of Object.keys(S.stats)){
     document.getElementById('val-'+k).textContent=fmtStat(S.stats[k]);
-    document.getElementById('bar-'+k).style.width=(S.stats[k]/STAT_MAX*100)+'%';
+    const bar=document.getElementById('bar-'+k);
+    const oldW=parseFloat(bar.style.width)||0;
+    const newW=S.stats[k]/STAT_MAX*100;
+    if(newW>oldW+0.1){ bar.classList.remove('stat-popped'); void bar.offsetWidth; bar.classList.add('stat-popped'); }
+    bar.style.width=newW+'%';
   }
   const n=S.level*XP_PER_LEVEL;
   document.getElementById('xpBar').style.width=(S.xp/n*100)+'%';
   const rank=getRank(S.level);
-  document.getElementById('avatarLevel').innerHTML=`Level ${S.level} · <span style="color:${rank.color};font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" onclick="showRankInfo()">${rank.name}</span> · ${S.xp}/${n} XP`;
+  const streakHtml=S.streak>=2?` · <span class="streak-badge">🔥 ${S.streak}T</span>`:'';
+  document.getElementById('avatarLevel').innerHTML=`Level ${S.level} · <span style="color:${rank.color};font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" onclick="showRankInfo()">${rank.name}</span>${streakHtml} · ${S.xp}/${n} XP`;
   renderProfileInfo();
   updateGoldDisplay();
 
@@ -2400,8 +2754,8 @@ function updateUI(){
 function updateEventIndicators(){
   document.querySelectorAll('.loc-btn').forEach(b=>{
     const locId=b.dataset.loc;
-    b.classList.toggle('has-event',!S.idle&&EVENTS.some(e=>e.locs.includes(locId)&&!S.seen.has(e.id)));
-    b.classList.toggle('has-dungeon',DUNGEONS.some(d=>d.locId===locId));
+    b.classList.toggle('has-event',!S.idle&&EVENTS.some(e=>e.locs.includes(locId)&&!S.seen.has(e.id)&&(!e.traitReq||S.traits.includes(e.traitReq))));
+    b.classList.remove('has-dungeon'); // dungeons are GPS-based, not location-tied
   });
 }
 
@@ -2536,10 +2890,17 @@ function loadState(){
     S.idle         = raw.idle ?? null;
     S.dungeons     = raw.dungeons ?? [];
     S.friends      = raw.friends ?? [];
+    S.proximity    = raw.proximity ?? {};
     S.lastLoc      = raw.lastLoc ?? null;
     S.gold         = raw.gold ?? 0;
     S.inventory    = raw.inventory ?? [];
     S.ranksAchieved= new Set(raw.ranksAchieved ?? []);
+    S.streak       = raw.streak ?? 0;
+    S.lastLogin    = raw.lastLogin ?? '';
+    S.xpBoost      = raw.xpBoost ?? false;
+    S.compBoost    = raw.compBoost ?? false;
+    S.stadtplan    = raw.stadtplan ?? false;
+    S.bagUpgrades  = raw.bagUpgrades ?? 0;
   }catch(e){ console.warn('loadState failed',e); }
 }
 
@@ -2549,6 +2910,7 @@ function resumeTimers(){
     document.getElementById('idleWrap').style.display='block';
     document.getElementById('idleLocName').textContent=`${S.idle.locIcon} ${S.idle.locName} – ${IDLE_TIMES[S.idle.tidx]?.label??''}`;
     document.querySelectorAll('.loc-btn').forEach(b=>b.disabled=true);
+    if(idleIv) clearInterval(idleIv);
     idleIv=setInterval(updateIdleBar,500);
     updateIdleBar(); // fires finishIdle immediately if already expired
   }
@@ -2563,6 +2925,12 @@ function resumeTimers(){
 loadState();
 if(profileData.motherTongue) S.languages[profileData.motherTongue]=true;
 
+// Sync NEARBY array with persisted friends + proximity (prevents duplicates on reload)
+syncNearbyFromState();
+
+// Daily streak check
+checkStreak();
+
 updateUI(); updateEventIndicators();
 lucide.createIcons();
 resumeTimers();
@@ -2571,7 +2939,43 @@ resumeTimers();
 if(profileData.name==='Wanderer' && !profileData.age && !profileData.city){
   setTimeout(()=>openProfile(), 600);
 }
+
+function syncNearbyFromState(){
+  NEARBY.forEach(p=>{
+    // Restore proximity progress
+    if(S.proximity[p.id] !== undefined) p.proximity = S.proximity[p.id];
+    // Mark as friend if already in S.friends
+    p.friend = !!S.friends.find(f=>f.id===p.id);
+    if(p.friend) p.proximity = 100;
+  });
+}
+
+function checkStreak(){
+  const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  if(S.lastLogin === today) return; // already logged in today
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(S.lastLogin === yesterday){
+    S.streak = (S.streak||0) + 1;
+  } else if(S.lastLogin && S.lastLogin !== today){
+    S.streak = 1; // streak broken, restart
+  } else {
+    S.streak = Math.max(1, S.streak||1); // first login ever
+  }
+  S.lastLogin = today;
+  // Streak reward
+  const reward = Math.min(500, 50 * S.streak);
+  S.gold += reward;
+  saveState();
+  setTimeout(()=>{
+    if(S.streak >= 2){
+      toast(`🔥 Tag ${S.streak} am Stück! +${reward} ◈ Streak-Bonus`);
+      addLog('🔥',`Tagesserie Tag ${S.streak}: <span class="lg">+${reward} ◈</span>`);
+    }
+  }, 1200);
+}
 </script>
+<!-- LEVEL FLASH -->
+<div id="levelFlash"></div>
 <!-- GOLD EARNED POPUP -->
 <div id="goldPop">
   <div class="gp-amount" id="goldPopAmt"></div>
