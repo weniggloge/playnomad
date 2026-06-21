@@ -963,6 +963,42 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
 /* ── ONBOARDING — block navigation away ── */
 body.onboarding .bot-bar { pointer-events: none; opacity: .35; filter: grayscale(.4); }
 
+/* Result/event popups must surface ABOVE tab overlays (e.g. dungeon list) */
+#outcomeOv, #eventOv, #rankUpOv, #statInfoOv, #traitInfoOv, #rankInfoOv, #artInfoOv { z-index: 1300; }
+
+/* ── EQUIPMENT ── */
+.eq-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.eq-slot {
+  background: linear-gradient(150deg, var(--s2), var(--s1));
+  border: 1px solid var(--border); border-radius: 2px;
+  padding: 10px 6px; text-align: center; cursor: pointer;
+  transition: all .18s; min-height: 92px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+}
+.eq-slot:hover { border-color: var(--cyan); }
+.eq-slot.sel { border-color: var(--gold); box-shadow: 0 0 10px rgba(255,177,46,.35); }
+.eq-slot.filled { border-color: var(--violet); }
+.eq-slot-lbl { font-size: .54rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.eq-slot-ic { font-size: 1.7rem; line-height: 1; }
+.eq-slot-nm { font-size: .58rem; color: var(--text); font-weight: 600; }
+.eq-slot-bn { font-size: .52rem; color: var(--gold); line-height: 1.3; }
+.gear-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 11px; margin-bottom: 7px;
+  background: linear-gradient(150deg, var(--s2), var(--s1)); border-radius: 2px;
+  border-left: 3px solid #6b7280;
+}
+.gear-item.common { border-left-color: var(--c-common); }
+.gear-item.uncommon { border-left-color: var(--c-uncommon); }
+.gear-item.epic { border-left-color: var(--c-epic); }
+.gear-item.legendary { border-left-color: var(--c-legendary); box-shadow: 0 0 8px rgba(240,164,42,.18); }
+.eq-unequip {
+  display: block; width: 100%; background: none; border: 1px solid var(--border);
+  border-radius: 2px; color: var(--t2); padding: 7px; font-size: .68rem; cursor: pointer;
+  margin-bottom: 8px; font-family: inherit; transition: all .2s;
+}
+.eq-unequip:hover { border-color: var(--red); color: var(--red); }
+.fx.gear { border-color: var(--violet); color: #c4b5fd; }
+
 /* ── PFP PICKER ── */
 .pfp-picker { display: flex; gap: 8px; flex-wrap: wrap; }
 .pfp-opt {
@@ -977,10 +1013,12 @@ body.onboarding .bot-bar { pointer-events: none; opacity: .35; filter: grayscale
 
 /* ── BOTTOM BAR — glass + glow on active ── */
 .bot-bar {
-  background: linear-gradient(180deg, rgba(22,32,74,.85), rgba(15,21,48,.98)) !important;
+  /* NOTE: no backdrop-filter here — on iOS Safari it breaks position:fixed
+     and the bar jumps to the middle of the screen while scrolling. Use a
+     solid background instead. */
+  background: linear-gradient(180deg, #16204a, #0b1024) !important;
   border-top: 1px solid transparent !important;
   border-image: linear-gradient(90deg, var(--cyan), var(--violet), var(--gold)) 1 !important;
-  backdrop-filter: blur(10px);
 }
 
 /* ── BUTTONS — sharper, brighter ── */
@@ -1259,6 +1297,17 @@ body.onboarding .bot-bar { pointer-events: none; opacity: .35; filter: grayscale
 
     <hr class="divider">
 
+    <!-- Equipment -->
+    <div class="section-label">
+      <i data-lucide="shield"></i> Ausrüstung
+      <span style="color:var(--muted);font-size:.56rem;margin-left:auto"><span id="equipCount">0</span>/6 angelegt</span>
+    </div>
+    <button class="coll-open-btn" onclick="openEquip()">
+      <i data-lucide="shield"></i> Ausrüstung öffnen
+    </button>
+
+    <hr class="divider">
+
     <!-- Artifacts -->
     <div class="section-label">
       <i data-lucide="gem"></i> Artefakte
@@ -1516,6 +1565,43 @@ body.onboarding .bot-bar { pointer-events: none; opacity: .35; filter: grayscale
   </div>
 </div>
 
+<!-- EQUIPMENT OVERLAY -->
+<div class="overlay hidden" id="equipOv" onclick="bgClose(event,'equipOv')">
+  <div class="big-modal" style="max-width:520px">
+    <div class="modal-hdr">
+      <div class="modal-title">Ausrüstung</div>
+      <button class="modal-close" onclick="hidePanel('equipOv')">✕</button>
+    </div>
+    <div style="font-size:.66rem;color:var(--cyan);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Gesamt-Boni</div>
+    <div id="equipTotals" style="font-size:.78rem;font-weight:600;color:#4ade80;margin-bottom:14px"></div>
+    <div class="eq-grid" id="equipSlots"></div>
+    <hr class="divider" style="margin:14px 0">
+    <div id="equipPicker"></div>
+  </div>
+</div>
+
+<!-- ARTIFACT INFO OVERLAY -->
+<div class="overlay hidden" id="artInfoOv" onclick="bgClose(event,'artInfoOv')">
+  <div class="outcome-card" style="text-align:left;min-width:280px;max-width:360px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Artefakt</div>
+      <button class="modal-close" onclick="hidePanel('artInfoOv')">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div id="ai-icon" style="font-size:2.2rem;line-height:1"></div>
+      <div>
+        <div id="ai-name" style="font-size:1.1rem;font-weight:700;color:var(--text)"></div>
+        <div id="ai-rar" style="font-size:.65rem;text-transform:capitalize"></div>
+      </div>
+    </div>
+    <div style="font-size:.62rem;color:var(--cyan);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Bonus pro Stück</div>
+    <div id="ai-base" style="font-size:.78rem;font-weight:600;color:#4ade80;margin-bottom:10px"></div>
+    <div style="font-size:.62rem;color:var(--cyan);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Aktueller Gesamtbonus</div>
+    <div id="ai-total" style="font-size:.78rem;font-weight:600;color:var(--gold);margin-bottom:10px"></div>
+    <div style="font-size:.64rem;color:var(--muted);line-height:1.6">Artefakte sind bis ×10 stapelbar. Jedes Stück erhöht deine Werte dauerhaft – auch ohne Anlegen.</div>
+  </div>
+</div>
+
 <!-- STAT INFO OVERLAY -->
 <div class="overlay hidden" id="statInfoOv" onclick="bgClose(event,'statInfoOv')">
   <div class="outcome-card" style="text-align:left;min-width:280px;max-width:380px">
@@ -1751,6 +1837,8 @@ const S = {
   compBoost:false,   // active companion drop boost
   stadtplan:false,   // permanent dungeon-without-GPS unlock
   bagUpgrades:0,     // extra inventory cap upgrades (max 2)
+  gear:[],           // owned gear: [{uid, id}]
+  equipped:{head:null,chest:null,legs:null,feet:null,acc1:null,acc2:null}, // slot → uid
 };
 const XP_PER_LEVEL=50, STAT_MAX=100, ART_MAX_STACK=10, INV_MAX=60;
 
@@ -1821,6 +1909,125 @@ const LOOT_BY_RARITY = {
   legendary: Object.entries(LOOT).filter(([,v])=>v.r==='legendary'),
 };
 const LOOT_BASE = { common:.07, uncommon:.018, epic:.003, legendary:.0003 };
+
+// ─── GEAR (equippable, stat bonuses, slots) ───────────────
+// slots: head, chest, legs, feet, acc (acc fits acc1 + acc2)
+const GEAR = {
+  // ── head ──
+  head_c1: {n:'Silber-Helm II', slot:'head', r:'common', i:'🧢', b:{endurance:3}},
+  head_c2: {n:'Jäger-Haube II', slot:'head', r:'common', i:'👒', b:{knowledge:3}},
+  head_c3: {n:'Eisen-Kappe II', slot:'head', r:'common', i:'👒', b:{knowledge:3}},
+  head_c4: {n:'Nebel-Hut II', slot:'head', r:'common', i:'👓', b:{knowledge:3}},
+  head_c5: {n:'Obsidian-Kappe II', slot:'head', r:'common', i:'⛑️', b:{endurance:3}},
+  head_c6: {n:'Späher-Haube II', slot:'head', r:'common', i:'🎩', b:{social:3}},
+  head_c7: {n:'Bronze-Reif II', slot:'head', r:'common', i:'👒', b:{mindfulness:3}},
+  head_c8: {n:'Obsidian-Kappe IIII', slot:'head', r:'common', i:'🕶️', b:{mindfulness:3}},
+  head_u1: {n:'Bronze-Maske II', slot:'head', r:'uncommon', i:'🎓', b:{strength:4,knowledge:1}},
+  head_u2: {n:'Saphir-Maske II', slot:'head', r:'uncommon', i:'👒', b:{creativity:2,knowledge:3}},
+  head_u3: {n:'Mond-Kapuze II', slot:'head', r:'uncommon', i:'⛑️', b:{mindfulness:3,knowledge:2}},
+  head_u4: {n:'Nebel-Hut IIII', slot:'head', r:'uncommon', i:'⛑️', b:{creativity:2,knowledge:3}},
+  head_u5: {n:'Elfen-Kappe II', slot:'head', r:'uncommon', i:'🎩', b:{creativity:1,knowledge:4}},
+  head_u6: {n:'Bronze-Hut II', slot:'head', r:'uncommon', i:'🎓', b:{knowledge:2,creativity:3}},
+  head_e1: {n:'Späher-Haube IIII', slot:'head', r:'epic', i:'🎩', b:{endurance:1,mindfulness:4,creativity:4}},
+  head_e2: {n:'Jäger-Haube IIII', slot:'head', r:'epic', i:'🕶️', b:{creativity:4,social:2,knowledge:3}},
+  head_e3: {n:'Glut-Helm II', slot:'head', r:'epic', i:'👓', b:{knowledge:2,strength:2,creativity:5}},
+  head_e4: {n:'Stahl-Maske II', slot:'head', r:'epic', i:'🎓', b:{creativity:2,knowledge:3,mindfulness:4}},
+  head_e5: {n:'Saphir-Haube II', slot:'head', r:'epic', i:'👒', b:{creativity:4,knowledge:2,mindfulness:3}},
+  head_l1: {n:'Krone der Ewigkeit', slot:'head', r:'legendary', i:'👑', b:{social:7,mindfulness:3,knowledge:4,strength:3}},
+  // ── chest ──
+  chest_c1: {n:'Saphir-Kürass II', slot:'chest', r:'common', i:'👔', b:{social:3}},
+  chest_c2: {n:'Nebel-Panzer II', slot:'chest', r:'common', i:'🥼', b:{social:3}},
+  chest_c3: {n:'Pilger-Kürass II', slot:'chest', r:'common', i:'👔', b:{endurance:3}},
+  chest_c4: {n:'Sturm-Brustplatte II', slot:'chest', r:'common', i:'🥋', b:{social:3}},
+  chest_c5: {n:'Stahl-Panzer II', slot:'chest', r:'common', i:'🦺', b:{endurance:3}},
+  chest_c6: {n:'Frost-Kürass II', slot:'chest', r:'common', i:'🦺', b:{strength:3}},
+  chest_c7: {n:'Bronze-Brustplatte II', slot:'chest', r:'common', i:'🥋', b:{strength:3}},
+  chest_c8: {n:'Nomaden-Wams II', slot:'chest', r:'common', i:'👔', b:{social:3}},
+  chest_u1: {n:'Späher-Brustplatte II', slot:'chest', r:'uncommon', i:'🧥', b:{strength:3,social:2}},
+  chest_u2: {n:'Obsidian-Robe II', slot:'chest', r:'uncommon', i:'👔', b:{strength:2,endurance:3}},
+  chest_u3: {n:'Sonnen-Robe II', slot:'chest', r:'uncommon', i:'🧥', b:{creativity:4,endurance:1}},
+  chest_u4: {n:'Sturm-Brustplatte IIII', slot:'chest', r:'uncommon', i:'🥼', b:{social:4,creativity:1}},
+  chest_u5: {n:'Gelehrten-Kürass II', slot:'chest', r:'uncommon', i:'🧥', b:{social:2,strength:3}},
+  chest_u6: {n:'Jäger-Mantel II', slot:'chest', r:'uncommon', i:'👕', b:{endurance:4,social:1}},
+  chest_e1: {n:'Bronze-Mantel II', slot:'chest', r:'epic', i:'👔', b:{strength:4,social:4,endurance:1}},
+  chest_e2: {n:'Leder-Robe II', slot:'chest', r:'epic', i:'🥼', b:{mindfulness:1,social:3,endurance:5}},
+  chest_e3: {n:'Smaragd-Robe II', slot:'chest', r:'epic', i:'🦺', b:{strength:4,endurance:2,social:3}},
+  chest_e4: {n:'Wolfs-Kürass II', slot:'chest', r:'epic', i:'👔', b:{social:5,strength:1,endurance:3}},
+  chest_e5: {n:'Sturm-Wams II', slot:'chest', r:'epic', i:'🛡️', b:{strength:2,endurance:3,knowledge:4}},
+  chest_l1: {n:'Drachenherz-Panzer', slot:'chest', r:'legendary', i:'🐲', b:{knowledge:5,endurance:3,social:5,strength:4}},
+  // ── legs ──
+  legs_c1: {n:'Samt-Beinlinge II', slot:'legs', r:'common', i:'👖', b:{mindfulness:3}},
+  legs_c2: {n:'Runen-Beinschienen II', slot:'legs', r:'common', i:'🥋', b:{creativity:3}},
+  legs_c3: {n:'Gold-Hosen II', slot:'legs', r:'common', i:'🦿', b:{mindfulness:3}},
+  legs_c4: {n:'Späher-Hose II', slot:'legs', r:'common', i:'👖', b:{endurance:3}},
+  legs_c5: {n:'Runen-Hosen II', slot:'legs', r:'common', i:'🩳', b:{endurance:3}},
+  legs_c6: {n:'Gold-Leggings II', slot:'legs', r:'common', i:'🦿', b:{creativity:3}},
+  legs_c7: {n:'Nomaden-Hose II', slot:'legs', r:'common', i:'👖', b:{knowledge:3}},
+  legs_c8: {n:'Eisen-Hose II', slot:'legs', r:'common', i:'🦿', b:{social:3}},
+  legs_u1: {n:'Seiden-Leggings II', slot:'legs', r:'uncommon', i:'🥋', b:{creativity:3,endurance:2}},
+  legs_u2: {n:'Bronze-Leggings II', slot:'legs', r:'uncommon', i:'🩳', b:{creativity:2,endurance:3}},
+  legs_u3: {n:'Samt-Hose II', slot:'legs', r:'uncommon', i:'🦿', b:{creativity:3,mindfulness:2}},
+  legs_u4: {n:'Gold-Beinschienen II', slot:'legs', r:'uncommon', i:'👖', b:{creativity:3,social:2}},
+  legs_u5: {n:'Zwergen-Beinschienen II', slot:'legs', r:'uncommon', i:'🩳', b:{mindfulness:3,endurance:2}},
+  legs_u6: {n:'Obsidian-Schurz II', slot:'legs', r:'uncommon', i:'🩳', b:{strength:3,creativity:2}},
+  legs_e1: {n:'Zwergen-Schurz II', slot:'legs', r:'epic', i:'🩳', b:{endurance:4,creativity:4,mindfulness:1}},
+  legs_e2: {n:'Gold-Beinschienen IIII', slot:'legs', r:'epic', i:'🥋', b:{creativity:1,strength:4,social:4}},
+  legs_e3: {n:'Elfen-Hosen II', slot:'legs', r:'epic', i:'🦿', b:{endurance:4,strength:3,mindfulness:2}},
+  legs_e4: {n:'Glut-Schurz II', slot:'legs', r:'epic', i:'🦿', b:{endurance:2,social:3,creativity:4}},
+  legs_e5: {n:'Gelehrten-Beinlinge II', slot:'legs', r:'epic', i:'👖', b:{endurance:1,creativity:1,mindfulness:7}},
+  legs_l1: {n:'Titanen-Beinschienen', slot:'legs', r:'legendary', i:'🦿', b:{endurance:2,creativity:3,strength:7,knowledge:5}},
+  // ── feet ──
+  feet_c1: {n:'Gold-Sohlen II', slot:'feet', r:'common', i:'👟', b:{strength:3}},
+  feet_c2: {n:'Nebel-Stiefel II', slot:'feet', r:'common', i:'🩴', b:{mindfulness:3}},
+  feet_c3: {n:'Obsidian-Schritte II', slot:'feet', r:'common', i:'👢', b:{knowledge:3}},
+  feet_c4: {n:'Mond-Treter II', slot:'feet', r:'common', i:'👟', b:{creativity:3}},
+  feet_c5: {n:'Gold-Stiefel II', slot:'feet', r:'common', i:'🩴', b:{creativity:3}},
+  feet_c6: {n:'Elfen-Schuhe II', slot:'feet', r:'common', i:'🩴', b:{endurance:3}},
+  feet_c7: {n:'Leder-Stiefel II', slot:'feet', r:'common', i:'👟', b:{mindfulness:3}},
+  feet_c8: {n:'Sonnen-Sohlen II', slot:'feet', r:'common', i:'👢', b:{endurance:3}},
+  feet_u1: {n:'Sturm-Schuhe II', slot:'feet', r:'uncommon', i:'👟', b:{knowledge:3,endurance:2}},
+  feet_u2: {n:'Jäger-Schuhe II', slot:'feet', r:'uncommon', i:'👢', b:{mindfulness:3,endurance:2}},
+  feet_u3: {n:'Samt-Treter II', slot:'feet', r:'uncommon', i:'👢', b:{creativity:1,strength:4}},
+  feet_u4: {n:'Elfen-Schritte II', slot:'feet', r:'uncommon', i:'🥿', b:{mindfulness:1,creativity:4}},
+  feet_u5: {n:'Saphir-Schuhe II', slot:'feet', r:'uncommon', i:'🩴', b:{social:2,creativity:3}},
+  feet_u6: {n:'Mond-Stiefel II', slot:'feet', r:'uncommon', i:'🩴', b:{endurance:2,mindfulness:3}},
+  feet_e1: {n:'Samt-Schuhe II', slot:'feet', r:'epic', i:'👟', b:{endurance:1,creativity:6,mindfulness:2}},
+  feet_e2: {n:'Eisen-Schuhe II', slot:'feet', r:'epic', i:'🥿', b:{endurance:2,mindfulness:3,social:4}},
+  feet_e3: {n:'Leder-Sandalen II', slot:'feet', r:'epic', i:'🩴', b:{social:1,endurance:2,creativity:6}},
+  feet_e4: {n:'Nomaden-Schuhe II', slot:'feet', r:'epic', i:'🥿', b:{endurance:2,mindfulness:3,creativity:4}},
+  feet_e5: {n:'Pilger-Schuhe II', slot:'feet', r:'epic', i:'👢', b:{creativity:3,endurance:2,mindfulness:4}},
+  feet_l1: {n:'Siebenmeilenstiefel', slot:'feet', r:'legendary', i:'✨', b:{knowledge:2,endurance:3,creativity:7,mindfulness:5}},
+  // ── acc ──
+  acc_c1: {n:'Elfen-Ring II', slot:'acc', r:'common', i:'🔮', b:{social:3}},
+  acc_c2: {n:'Jäger-Ring II', slot:'acc', r:'common', i:'💍', b:{social:3}},
+  acc_c3: {n:'Elfen-Amulett II', slot:'acc', r:'common', i:'🧿', b:{mindfulness:3}},
+  acc_c4: {n:'Gold-Ring II', slot:'acc', r:'common', i:'⏱️', b:{endurance:3}},
+  acc_c5: {n:'Seiden-Ring II', slot:'acc', r:'common', i:'🧿', b:{knowledge:3}},
+  acc_c6: {n:'Pilger-Brosche II', slot:'acc', r:'common', i:'🪬', b:{strength:3}},
+  acc_c7: {n:'Frost-Talisman II', slot:'acc', r:'common', i:'📿', b:{knowledge:3}},
+  acc_c8: {n:'Schatten-Siegel II', slot:'acc', r:'common', i:'🎒', b:{creativity:3}},
+  acc_u1: {n:'Zwergen-Siegel II', slot:'acc', r:'uncommon', i:'🔮', b:{mindfulness:2,knowledge:3}},
+  acc_u2: {n:'Sonnen-Kette II', slot:'acc', r:'uncommon', i:'🔆', b:{mindfulness:1,social:4}},
+  acc_u3: {n:'Kristall-Talisman II', slot:'acc', r:'uncommon', i:'📿', b:{social:2,endurance:3}},
+  acc_u4: {n:'Kristall-Amulett II', slot:'acc', r:'uncommon', i:'🔮', b:{creativity:2,knowledge:3}},
+  acc_u5: {n:'Obsidian-Brosche II', slot:'acc', r:'uncommon', i:'🎒', b:{social:4,mindfulness:1}},
+  acc_u6: {n:'Jäger-Siegel II', slot:'acc', r:'uncommon', i:'🔮', b:{mindfulness:2,social:3}},
+  acc_e1: {n:'Bronze-Brosche II', slot:'acc', r:'epic', i:'⏱️', b:{strength:1,mindfulness:3,knowledge:5}},
+  acc_e2: {n:'Schatten-Siegel IIII', slot:'acc', r:'epic', i:'🎒', b:{mindfulness:4,endurance:3,social:2}},
+  acc_e3: {n:'Kristall-Ring II', slot:'acc', r:'epic', i:'🧿', b:{creativity:5,social:3,knowledge:1}},
+  acc_e4: {n:'Runen-Amulett II', slot:'acc', r:'epic', i:'🧿', b:{social:3,knowledge:3,mindfulness:3}},
+  acc_e5: {n:'Zwergen-Amulett II', slot:'acc', r:'epic', i:'🔆', b:{social:5,endurance:3,creativity:1}},
+  acc_l1: {n:'Auge des Schicksals', slot:'acc', r:'legendary', i:'🔆', b:{strength:3,social:5,creativity:3,knowledge:6}},
+};
+// Normal drops exclude legendaries — those drop separately at 0.001% each
+const GEAR_BY_RARITY = {
+  common:    Object.keys(GEAR).filter(id=>GEAR[id].r==='common'),
+  uncommon:  Object.keys(GEAR).filter(id=>GEAR[id].r==='uncommon'),
+  epic:      Object.keys(GEAR).filter(id=>GEAR[id].r==='epic'),
+};
+const GEAR_LEGENDARY = Object.keys(GEAR).filter(id=>GEAR[id].r==='legendary'); // 1 per slot
+const SLOT_LABELS = {head:'Kopf', chest:'Brust', legs:'Hose', feet:'Schuhe', acc1:'Accessoire I', acc2:'Accessoire II'};
+const SLOT_ICONS  = {head:'🎩', chest:'👕', legs:'👖', feet:'🥾', acc1:'💍', acc2:'📿'};
 
 // ─── RANK SYSTEM (every 10 levels = 1 rank, +1 all stats on rank-up) ──
 const RANKS = [
@@ -2130,13 +2337,26 @@ function clickLoc(locId) {
   lucide.createIcons();
 }
 
+// Active mounts speed things up: each active mount -15% time (cap -50%).
+// Same reward, just faster — to the location and through dungeons.
+function mountSpeedMult(){
+  const mounts=S.active.filter(id=>CD[id]&&CD[id].t==='mount').length;
+  return Math.max(0.5, 1 - 0.15*mounts);
+}
+function activeMountNames(){
+  return S.active.filter(id=>CD[id]&&CD[id].t==='mount').map(id=>`${CD[id].i} ${CD[id].n}`);
+}
+
 function startIdle(locId, ti) {
   const loc=LOCS[locId], t=IDLE_TIMES[ti];
-  S.idle={locId, locName:loc.name, locIcon:loc.icon, endTime:Date.now()+t.ms, totalMs:t.ms, mult:t.mult, tidx:t.tidx};
+  const speed=mountSpeedMult();
+  const ms=Math.round(t.ms*speed);
+  S.idle={locId, locName:loc.name, locIcon:loc.icon, endTime:Date.now()+ms, totalMs:ms, mult:t.mult, tidx:t.tidx};
   document.querySelectorAll('.loc-btn').forEach(b=>b.disabled=true);
   document.getElementById('idleWrap').style.display='block';
   document.getElementById('idleLocName').textContent=`${loc.icon} ${loc.name} – ${t.label}`;
-  addLog(loc.icon,`Idle gestartet: <span class="lg">${loc.name} – ${t.label}</span>`);
+  addLog(loc.icon,`Idle gestartet: <span class="lg">${loc.name} – ${t.label}</span>`+(speed<1?` <span style="color:var(--cyan)">🐴 −${Math.round((1-speed)*100)}% Zeit</span>`:''));
+  if(speed<1) toast(`🐴 Reittier: ${Math.round((1-speed)*100)}% schneller!`);
   document.getElementById('idleBar').classList.add('idle-active');
   updateIdleBar();
   idleIv=setInterval(updateIdleBar,500);
@@ -2451,11 +2671,13 @@ function renderDungeons(){
       if(coord){ dist=Math.round(haversine(S.userLat,S.userLng,coord.lat,coord.lng)); inRange=dist<=150; dir=dungeonDirection(S.userLat,S.userLng,coord.lat,coord.lng); }
     }
     const levelOk=S.level>=10;
-    const locked=!running&&(!levelOk||!inRange);
+    const otherRunning=S.dungeons.length>0 && !running;
+    const locked=!running&&(!levelOk||!inRange||otherRunning);
     const div=document.createElement('div');
     div.className='dc'+(running?' running':locked?' locked':'');
     let locationLine='';
     if(!levelOk) locationLine=`<div class="dc-prob lo">🔒 Level 10 erforderlich (du: ${S.level})</div>`;
+    else if(otherRunning) locationLine=`<div class="dc-prob mi">⏳ Anderer Dungeon läuft…</div>`;
     else if(S.stadtplan) locationLine=`<div class="dc-prob hi">🗺️ Stadtplan aktiv – Zugang überall</div>`;
     else if(!gpsReady) locationLine=`<div class="dc-prob lo">📡 GPS-Scan erforderlich</div>`;
     else if(inRange) locationLine=`<div class="dc-prob hi">✓ In Reichweite (${dist !== null ? dist+'m' : '–'})</div>`;
@@ -2472,6 +2694,7 @@ function renderDungeons(){
 function enterDungeon(d){
   if(S.level<10){ toast('🔒 Level 10 erforderlich!'); return; }
   if(S.idle){ toast('⏳ Charakter idlet!'); return; }
+  if(S.dungeons.length){ toast('⚔️ Erst den laufenden Dungeon abschließen!'); return; }
   if(S.dungeons.find(x=>x.id===d.id)) return;
   if(!S.stadtplan){
     if(!S.dungeonCoords||S.userLat===null){ toast('📡 GPS-Scan zuerst!'); return; }
@@ -2480,10 +2703,13 @@ function enterDungeon(d){
     const dist=Math.round(haversine(S.userLat,S.userLng,coord.lat,coord.lng));
     if(dist>150){ toast(`📍 Zu weit! ${dist}m (max 150m)`); return; }
   }
-  S.dungeons.push({id:d.id,end:Date.now()+d.ms});
-  addLog(d.icon,`Dungeon: <span class="lg">${d.name}</span> – Kampf läuft…`);
+  const speed=mountSpeedMult();
+  const ms=Math.round(d.ms*speed);
+  S.dungeons.push({id:d.id,end:Date.now()+ms});
+  addLog(d.icon,`Dungeon: <span class="lg">${d.name}</span> – Kampf läuft…`+(speed<1?` <span style="color:var(--cyan)">🐴 −${Math.round((1-speed)*100)}% Zeit</span>`:''));
+  if(speed<1) toast(`🐴 Reittier: ${Math.round((1-speed)*100)}% schneller im Dungeon!`);
   renderDungeons();
-  setTimeout(()=>resolveDungeon(d),d.ms);
+  setTimeout(()=>resolveDungeon(d),ms);
 }
 function resolveDungeon(d){
   S.dungeons=S.dungeons.filter(x=>x.id!==d.id);
@@ -2512,6 +2738,9 @@ function resolveDungeon(d){
   const lootMult = ok ? (d.base < 0.3 ? 3 : d.base < 0.5 ? 2 : 1.2) : 0.4;
   const lootId = dropLoot(lootMult);
   if(lootId){ const l=LOOT[lootId]; chips.push({label:`${l.i} ${l.n} (Tasche)`,type:'loot'}); }
+  // Gear drop — better on win
+  const gearId = dropGear(ok ? 2.2 : 0.6);
+  if(gearId){ const g=GEAR[gearId]; chips.push({label:`${g.i} ${g.n} (Ausrüstung)`,type:'gear'}); toast(`🛡️ Ausrüstung gefunden: ${g.i} ${g.n}!`); }
   updateUI();
   showOutcome(ok?`⚔️ ${d.icon} ${d.name}\n\nSieg! Dein Charakter hat bestanden.`:`💀 ${d.icon} ${d.name}\n\nNiederlage – aber du findest etwas auf dem Rückweg.`,chips.length?chips:[{label:ok?'Sieg':'Rückzug',type:ok?'pos':'neg'}]);
   // Animate outcome card
@@ -2613,7 +2842,7 @@ function renderArtefakte(){
     const maxed=cnt>=ART_MAX_STACK;
     const totalBonus=Object.entries(a.b).map(([k,v])=>`+${v*Math.max(1,cnt)} ${sl(k)}`).join(' · ');
     const baseBonus=Object.entries(a.b).map(([k,v])=>`+${v} ${sl(k)}`).join(' · ');
-    return `<div class="cc ${a.r} ${locked?'locked':'owned'}" style="opacity:${locked?.45:1}">
+    return `<div class="cc ${a.r} ${locked?'locked':'owned'}" style="opacity:${locked?.45:1};cursor:pointer" onclick="showArtInfo('${id}')">
       <div class="rb"></div>
       <div class="cc-rl">${a.r}</div>
       <div class="cc-ic">${a.i}</div>
@@ -2623,6 +2852,18 @@ function renderArtefakte(){
       ${locked?`<div class="cc-rq">Noch nicht gefunden</div>`:''}
     </div>`;
   }).join('');
+}
+function showArtInfo(id){
+  const a=ART[id]; if(!a) return;
+  const stack=S.artifacts[id];
+  const cnt=stack?stack.count:0;
+  document.getElementById('ai-icon').textContent=a.i;
+  document.getElementById('ai-name').textContent=a.n;
+  document.getElementById('ai-rar').textContent=a.r+(cnt?` · ×${cnt}/${ART_MAX_STACK}`:' · noch nicht gefunden');
+  document.getElementById('ai-rar').style.color=({common:'#9ca3af',uncommon:'#93c5fd',epic:'#c4b5fd',legendary:'var(--gold)'})[a.r]||'var(--muted)';
+  document.getElementById('ai-base').textContent=Object.entries(a.b).map(([k,v])=>`+${v} ${sl(k)}`).join(' · ')+' pro Stück';
+  document.getElementById('ai-total').textContent=cnt?Object.entries(a.b).map(([k,v])=>`+${v*cnt} ${sl(k)}`).join(' · ')+' gesamt':'– (noch nicht im Besitz)';
+  document.getElementById('artInfoOv').classList.remove('hidden');
 }
 
 function devBoost(){
@@ -2634,6 +2875,10 @@ function devBoost(){
   // Add sample loot
   ['drachenschuppe','schriftrolle','alte_muenze','blauer_kristall'].forEach(id=>{
     const l=LOOT[id]; if(l&&S.inventory.length<INV_MAX+S.bagUpgrades*10) S.inventory.push({uid:Date.now()+Math.random(),id,...l});
+  });
+  // Add sample gear (one per slot type) for testing the equipment screen
+  ['head_e1','chest_e1','legs_e1','feet_e1','acc_e1','acc_u1','head_u1'].forEach(id=>{
+    if(GEAR[id]) S.gear.push({uid:Date.now()+Math.random(), id});
   });
   // Fake GPS so all dungeons are "in range" (stadtplan also covers this)
   S.userLat=48.0; S.userLng=8.0;
@@ -2658,6 +2903,104 @@ function dropLoot(mult){
     }
   }
   return null;
+}
+
+// Gear drop — rolls a rarity, returns the gear id (or null)
+const GEAR_DROP = { common:.10, uncommon:.05, epic:.012 };
+const LEG_DROP_CHANCE = 0.00001; // 0.001% per slot-legendary
+function dropGear(mult=1){
+  // Ultra-rare legendaries first (one unique per slot, 0.001% each)
+  for(const id of GEAR_LEGENDARY){
+    if(Math.random()<LEG_DROP_CHANCE*mult){
+      S.gear.push({uid:Date.now()+Math.random(), id});
+      return id;
+    }
+  }
+  for(const rar of ['epic','uncommon','common']){
+    if(Math.random()<GEAR_DROP[rar]*mult){
+      const pool=GEAR_BY_RARITY[rar];
+      if(!pool.length) continue;
+      const id=pool[Math.floor(Math.random()*pool.length)];
+      S.gear.push({uid:Date.now()+Math.random(), id});
+      return id;
+    }
+  }
+  return null;
+}
+
+// ─── EQUIPMENT ────────────────────────────────────────────
+function equipBonusTotals(){
+  const tot={};
+  for(const slot of Object.keys(S.equipped)){
+    const uid=S.equipped[slot]; if(!uid) continue;
+    const it=S.gear.find(g=>String(g.uid)===String(uid)); if(!it) continue;
+    const g=GEAR[it.id]; if(!g) continue;
+    for(const[k,v] of Object.entries(g.b)) tot[k]=(tot[k]||0)+v;
+  }
+  return tot;
+}
+function openEquip(){ closeAllOverlays(); selectedSlot=null; renderEquip(); document.getElementById('equipOv').classList.remove('hidden'); }
+let selectedSlot=null;
+function renderEquip(){
+  // Paper-doll slots
+  const slots=['head','chest','legs','feet','acc1','acc2'];
+  const grid=document.getElementById('equipSlots');
+  grid.innerHTML=slots.map(slot=>{
+    const uid=S.equipped[slot];
+    const it=uid?S.gear.find(g=>String(g.uid)===String(uid)):null;
+    const g=it?GEAR[it.id]:null;
+    const sel=selectedSlot===slot?' sel':'';
+    return `<div class="eq-slot${g?' filled':''}${sel}" onclick="selectSlot('${slot}')">
+      <div class="eq-slot-lbl">${SLOT_LABELS[slot]}</div>
+      <div class="eq-slot-ic">${g?g.i:`<span style="opacity:.3">${SLOT_ICONS[slot]}</span>`}</div>
+      <div class="eq-slot-nm">${g?g.n:'– leer –'}</div>
+      ${g?`<div class="eq-slot-bn">${Object.entries(g.b).map(([k,v])=>`+${v} ${sl(k)}`).join(' · ')}</div>`:''}
+    </div>`;
+  }).join('');
+  // Totals
+  const tot=equipBonusTotals();
+  const totStr=Object.keys(tot).length?Object.entries(tot).map(([k,v])=>`+${v} ${sl(k)}`).join(' · '):'Keine Boni – rüste Items aus';
+  document.getElementById('equipTotals').textContent=totStr;
+  // Picker for selected slot
+  const pick=document.getElementById('equipPicker');
+  if(!selectedSlot){ pick.innerHTML='<div style="font-size:.66rem;color:var(--muted);text-align:center;padding:14px 0">Tippe einen Slot an, um Ausrüstung zu wählen.</div>'; return; }
+  const baseSlot=selectedSlot.startsWith('acc')?'acc':selectedSlot;
+  const usedUids=Object.entries(S.equipped).filter(([s,u])=>u&&s!==selectedSlot).map(([,u])=>String(u));
+  const avail=S.gear.filter(it=>GEAR[it.id]&&GEAR[it.id].slot===baseSlot&&!usedUids.includes(String(it.uid)));
+  const order={legendary:0,epic:1,uncommon:2,common:3};
+  avail.sort((a,b)=>order[GEAR[a.id].r]-order[GEAR[b.id].r]);
+  let html=`<div style="font-size:.62rem;color:var(--cyan);text-transform:uppercase;letter-spacing:.06em;margin:4px 0 8px">${SLOT_LABELS[selectedSlot]} wählen</div>`;
+  if(S.equipped[selectedSlot]) html+=`<button class="eq-unequip" onclick="unequipSlot('${selectedSlot}')">✕ Ablegen</button>`;
+  if(!avail.length) html+='<div style="font-size:.66rem;color:var(--muted);padding:10px 0">Keine passende Ausrüstung. Finde welche in Dungeons.</div>';
+  else html+=avail.map(it=>{
+    const g=GEAR[it.id]; const isOn=String(S.equipped[selectedSlot])===String(it.uid);
+    return `<div class="gear-item ${g.r}">
+      <span class="inv-icon">${g.i}</span>
+      <div class="inv-info"><div class="inv-name">${g.n}</div><div class="inv-rar">${g.r} · ${Object.entries(g.b).map(([k,v])=>`+${v} ${sl(k)}`).join(' · ')}</div></div>
+      <button class="inv-sell" onclick="equipItem('${selectedSlot}','${it.uid}')" ${isOn?'disabled':''}>${isOn?'angelegt':'Anlegen'}</button>
+    </div>`;
+  }).join('');
+  pick.innerHTML=html;
+}
+function selectSlot(slot){ selectedSlot=(selectedSlot===slot?null:slot); renderEquip(); }
+function applyGearBonus(uid, sign){
+  const it=S.gear.find(g=>String(g.uid)===String(uid)); if(!it) return;
+  const g=GEAR[it.id]; if(!g) return;
+  for(const[k,v] of Object.entries(g.b)) S.stats[k]=Math.max(0,Math.min(STAT_MAX,S.stats[k]+sign*v));
+}
+function equipItem(slot, uid){
+  if(S.equipped[slot]) applyGearBonus(S.equipped[slot], -1); // remove old
+  S.equipped[slot]=uid;
+  applyGearBonus(uid, +1);
+  const g=GEAR[S.gear.find(x=>String(x.uid)===String(uid)).id];
+  toast(`🛡️ ${g.i} ${g.n} angelegt`);
+  updateUI(); renderEquip();
+}
+function unequipSlot(slot){
+  if(!S.equipped[slot]) return;
+  applyGearBonus(S.equipped[slot], -1);
+  S.equipped[slot]=null;
+  updateUI(); renderEquip();
 }
 
 function openInventory(){ renderInventory(); document.getElementById('invOv').classList.remove('hidden'); }
@@ -2962,13 +3305,17 @@ function updateUI(){
   }
   document.getElementById('ownedSm').textContent=S.owned.size;
 
-  // Artifacts with stack count
+  // Equipment count
+  const ec=document.getElementById('equipCount');
+  if(ec) ec.textContent=Object.values(S.equipped).filter(Boolean).length;
+
+  // Artifacts with stack count (clickable for info)
   const ag=document.getElementById('artGrid');
-  const arts=Object.values(S.artifacts);
-  ag.innerHTML=arts.length
-    ?arts.map(a=>`<div class="art-chip ${a.r}" title="${Object.entries(a.b).map(([k,v])=>`+${v*a.count} ${sl(k)}`).join(', ')} total">${a.i} ${a.n}<span class="art-stack${a.count>=ART_MAX_STACK?' maxed':''}">×${a.count}</span></div>`).join('')
+  const artEntries=Object.entries(S.artifacts);
+  ag.innerHTML=artEntries.length
+    ?artEntries.map(([id,a])=>`<div class="art-chip ${a.r}" style="cursor:pointer" onclick="showArtInfo('${id}')">${a.i} ${a.n}<span class="art-stack${a.count>=ART_MAX_STACK?' maxed':''}">×${a.count}</span></div>`).join('')
     :'<span style="font-size:.61rem;color:var(--muted)">Noch keine.</span>';
-  document.getElementById('artSm').textContent=arts.length;
+  document.getElementById('artSm').textContent=artEntries.length;
 
   // Inventory badge
   const ib=document.getElementById('invBadge');
@@ -3129,6 +3476,8 @@ function loadState(){
     S.compBoost    = raw.compBoost ?? false;
     S.stadtplan    = raw.stadtplan ?? false;
     S.bagUpgrades  = raw.bagUpgrades ?? 0;
+    S.gear         = raw.gear ?? [];
+    S.equipped     = Object.assign({head:null,chest:null,legs:null,feet:null,acc1:null,acc2:null}, raw.equipped||{});
   }catch(e){ console.warn('loadState failed',e); }
 }
 
