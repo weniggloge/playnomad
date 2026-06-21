@@ -101,12 +101,12 @@ def slice_sheet(src, cols, rows, names, outdir, out_size=256, pad_frac=0.08, min
         print(f"  {outdir}/{name}.png  (blob {sw}x{sh})")
     print(f"  -> uniform canvas {canvas_sz}px\n")
 
-# Location icons: 3x3
+# Location icons: 3x3  (minimal padding so the art fills the square)
 slice_sheet("icons.png", 3, 3,
     ["gym","library","park","cafe","museum","airport","restaurant","temple","university"],
-    "icons")
+    "icons", pad_frac=0.02)
 
 # Avatar icons: 3 cols x 2 rows, last cell empty
 slice_sheet("avataricons.png", 3, 2,
     ["nomad","mage","witch","rogue","executive",None],
-    "icons/avatars")
+    "icons/avatars", pad_frac=0.02)

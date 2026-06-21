@@ -106,8 +106,8 @@ hr.divider {
   margin-bottom: 14px;
 }
 .av-icon {
-  width: 84px;
-  height: 84px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   background: linear-gradient(135deg, #3730a3, #1e1435);
   border: 2px solid var(--gold);
@@ -133,7 +133,14 @@ hr.divider {
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-left: -4px; margin-right: -4px;
+  border-radius: 2px;
+  transition: background .15s;
 }
+.stat-row:hover { background: rgba(25,230,255,.06); }
+.stat-row:active { background: rgba(25,230,255,.12); }
 .stat-icon {
   width: 28px;
   height: 28px;
@@ -352,8 +359,8 @@ hr.divider {
 .loc-btn:hover:not(:disabled) .lucide { stroke: var(--gold); }
 
 .loc-icon-wrap {
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -951,12 +958,15 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
 }
 .av-name { text-shadow: 0 0 12px rgba(255,177,46,.4); }
 .av-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.av-icon.has-pfp { padding: 2px; }
+.av-icon.has-pfp { padding: 0; }
+
+/* ── ONBOARDING — block navigation away ── */
+body.onboarding .bot-bar { pointer-events: none; opacity: .35; filter: grayscale(.4); }
 
 /* ── PFP PICKER ── */
 .pfp-picker { display: flex; gap: 8px; flex-wrap: wrap; }
 .pfp-opt {
-  width: 80px; height: 80px; border-radius: 2px; padding: 3px;
+  width: 84px; height: 84px; border-radius: 2px; padding: 2px;
   border: 2px solid var(--border);
   background: linear-gradient(150deg, var(--s2), var(--s1));
   cursor: pointer; transition: all .18s; flex-shrink: 0;
@@ -1188,37 +1198,37 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
     <!-- Stats -->
     <div class="section-label"><i data-lucide="activity"></i> Eigenschaften</div>
 
-    <div class="stat-row">
+    <div class="stat-row" onclick="showStatInfo('strength')">
       <div class="stat-icon str"><i data-lucide="dumbbell"></i></div>
       <span class="stat-name">Kraft</span>
       <div class="stat-track"><div class="stat-fill str" id="bar-strength" style="width:0%"></div></div>
       <span class="stat-val" id="val-strength">0</span>
     </div>
-    <div class="stat-row">
+    <div class="stat-row" onclick="showStatInfo('knowledge')">
       <div class="stat-icon kno"><i data-lucide="book-open"></i></div>
       <span class="stat-name">Wissen</span>
       <div class="stat-track"><div class="stat-fill kno" id="bar-knowledge" style="width:0%"></div></div>
       <span class="stat-val" id="val-knowledge">0</span>
     </div>
-    <div class="stat-row">
+    <div class="stat-row" onclick="showStatInfo('endurance')">
       <div class="stat-icon end"><i data-lucide="activity"></i></div>
       <span class="stat-name">Ausdauer</span>
       <div class="stat-track"><div class="stat-fill end" id="bar-endurance" style="width:0%"></div></div>
       <span class="stat-val" id="val-endurance">0</span>
     </div>
-    <div class="stat-row">
+    <div class="stat-row" onclick="showStatInfo('social')">
       <div class="stat-icon soc"><i data-lucide="users"></i></div>
       <span class="stat-name">Soziales</span>
       <div class="stat-track"><div class="stat-fill soc" id="bar-social" style="width:0%"></div></div>
       <span class="stat-val" id="val-social">0</span>
     </div>
-    <div class="stat-row">
+    <div class="stat-row" onclick="showStatInfo('creativity')">
       <div class="stat-icon cre"><i data-lucide="palette"></i></div>
       <span class="stat-name">Kreativität</span>
       <div class="stat-track"><div class="stat-fill cre" id="bar-creativity" style="width:0%"></div></div>
       <span class="stat-val" id="val-creativity">0</span>
     </div>
-    <div class="stat-row">
+    <div class="stat-row" onclick="showStatInfo('mindfulness')">
       <div class="stat-icon min"><i data-lucide="leaf"></i></div>
       <span class="stat-name">Achtsamkeit</span>
       <div class="stat-track"><div class="stat-fill min" id="bar-mindfulness" style="width:0%"></div></div>
@@ -1506,6 +1516,28 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
   </div>
 </div>
 
+<!-- STAT INFO OVERLAY -->
+<div class="overlay hidden" id="statInfoOv" onclick="bgClose(event,'statInfoOv')">
+  <div class="outcome-card" style="text-align:left;min-width:280px;max-width:380px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Eigenschaft</div>
+      <button class="modal-close" onclick="hidePanel('statInfoOv')">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div class="stat-icon" id="si-icon" style="width:38px;height:38px"></div>
+      <div>
+        <div id="si-name" style="font-size:1.1rem;font-weight:700;color:var(--text)"></div>
+        <div id="si-value" style="font-size:.65rem;color:var(--gold)"></div>
+      </div>
+    </div>
+    <div id="si-desc" style="font-size:.76rem;color:#cbd5e1;margin-bottom:14px;line-height:1.7"></div>
+    <div style="font-size:.62rem;color:var(--cyan);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">📈 So steigerst du es</div>
+    <div id="si-raise" style="font-size:.74rem;color:var(--t2);margin-bottom:12px;line-height:1.6"></div>
+    <div style="font-size:.62rem;color:var(--cyan);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">⚔️ Wofür es gut ist</div>
+    <div id="si-use" style="font-size:.74rem;color:var(--t2);line-height:1.6"></div>
+  </div>
+</div>
+
 <!-- ARTEFAKTE OVERLAY -->
 <div class="overlay hidden" id="artOv" onclick="bgClose(event,'artOv')">
   <div class="big-modal">
@@ -1589,7 +1621,7 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
   <div class="big-modal" style="max-width:440px">
     <div class="modal-hdr">
       <div class="modal-title">Dein Charakter</div>
-      <button class="modal-close" onclick="saveProfile();hidePanel('profileOv')">✕</button>
+      <button class="modal-close" id="pf-close-btn" onclick="saveProfile();hidePanel('profileOv')">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:13px">
       <div class="pf-row">
@@ -1675,7 +1707,8 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
           <label class="lang-radio"><input type="radio" name="pf-lang" value="ar"> 🇸🇦 Arabisch</label>
         </div>
       </div>
-      <button class="cont-btn" onclick="saveProfile();hidePanel('profileOv')" style="margin-top:4px">Fertig</button>
+      <div id="pf-onboard-hint" style="display:none;font-size:.66rem;color:var(--t2);line-height:1.6;margin-bottom:2px">👋 Willkommen bei Nomad! Wähle ein Profilbild, deinen Namen und deine Muttersprache, um zu starten.</div>
+      <button class="cont-btn" id="pf-done-btn" onclick="finishProfile()" style="margin-top:4px">Fertig</button>
       <button onclick="devBoost()" style="margin-top:8px;width:100%;padding:9px;background:none;border:1px dashed #374151;border-radius:10px;color:#6b7280;font-size:.68rem;cursor:pointer">🛠 Dev-Boost (Prototype Testing)</button>
     </div>
   </div>
@@ -1687,8 +1720,12 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
 // ─── STATE ────────────────────────────────────────────────
 // Profile persists in localStorage independent of game state
 const PROFILE_KEY='nomad_profile';
-const DEFAULT_PROFILE={name:'Wanderer',age:null,city:'',nationality:'',motherTongue:'de',mtLocked:false,avatar:null};
+const DEFAULT_PROFILE={name:'Wanderer',age:null,city:'',nationality:'',motherTongue:'de',mtLocked:false,avatar:null,onboarded:false};
 let profileData = JSON.parse(localStorage.getItem(PROFILE_KEY)||'null') || {...DEFAULT_PROFILE};
+// Returning users from before onboarding existed: infer they're already onboarded
+if(profileData.onboarded===undefined){
+  profileData.onboarded = !!(profileData.mtLocked || (profileData.name && profileData.name!=='Wanderer') || profileData.city || profileData.age);
+}
 
 const S = {
   xp:0, level:1,
@@ -2312,21 +2349,44 @@ function updateAvatarHeader(){
     lucide.createIcons();
   }
 }
-function openProfile(){
+function openProfile(onboarding=false){
   renderPfpPicker();
-  document.getElementById('pf-name').value   = profileData.name||'';
+  document.getElementById('pf-name').value   = (profileData.name && profileData.name!=='Wanderer') ? profileData.name : '';
   document.getElementById('pf-age').value    = profileData.age||'';
   document.getElementById('pf-city').value   = profileData.city||'';
   document.getElementById('pf-nation').value = profileData.nationality||'';
   const mt = profileData.motherTongue||'de';
   const radio = document.querySelector(`input[name="pf-lang"][value="${mt}"]`);
-  if(radio) radio.checked = true;
+  if(radio && profileData.mtLocked) radio.checked = true;
   // Lock mother tongue after first save
   const locked = profileData.mtLocked;
   document.querySelectorAll('input[name="pf-lang"]').forEach(r => r.disabled = locked);
   document.querySelectorAll('.lang-radio').forEach(l => l.style.opacity = locked ? (l.querySelector('input').value===mt?'1':'.3') : '1');
   document.getElementById('pf-lang-lock-note').style.display = locked ? 'block' : 'none';
-  document.getElementById('profileOv').classList.remove('hidden');
+  // Onboarding lock: no close, no skip
+  const ov=document.getElementById('profileOv');
+  ov.classList.toggle('locked', onboarding);
+  document.body.classList.toggle('onboarding', onboarding);
+  document.getElementById('pf-close-btn').style.display = onboarding ? 'none' : '';
+  document.getElementById('pf-onboard-hint').style.display = onboarding ? 'block' : 'none';
+  document.getElementById('pf-done-btn').textContent = onboarding ? '⚔️ Abenteuer starten' : 'Fertig';
+  ov.classList.remove('hidden');
+}
+function startOnboarding(){ openProfile(true); }
+function finishProfile(){
+  const ov=document.getElementById('profileOv');
+  if(ov.classList.contains('locked')){
+    // Require the key onboarding decisions
+    const name = document.getElementById('pf-name').value.trim();
+    const mt   = document.querySelector('input[name="pf-lang"]:checked');
+    if(!name){ toast('✍️ Bitte gib deinen Namen ein.'); return; }
+    if(!mt){ toast('🗣️ Bitte wähle deine Muttersprache.'); return; }
+    profileData.onboarded = true;
+  }
+  saveProfile();
+  ov.classList.remove('locked');
+  document.body.classList.remove('onboarding');
+  hidePanel('profileOv');
 }
 function saveProfile(){
   const name  = document.getElementById('pf-name').value.trim()||'Wanderer';
@@ -2335,7 +2395,7 @@ function saveProfile(){
   const nat   = document.getElementById('pf-nation').value;
   const mtEl  = document.querySelector('input[name="pf-lang"]:checked');
   const mt    = mtEl ? mtEl.value : (profileData.motherTongue||'de');
-  profileData = {name, age, city, nationality:nat, motherTongue:mt, mtLocked:!!mt, avatar:profileData.avatar||null};
+  profileData = {name, age, city, nationality:nat, motherTongue:mt, mtLocked:!!mtEl||!!profileData.mtLocked, avatar:profileData.avatar||null, onboarded:!!profileData.onboarded};
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profileData));
   Object.keys(S.languages).forEach(k => S.languages[k] = (k===mt));
   updateUI(); // also triggers saveState()
@@ -2802,11 +2862,43 @@ function showTraitInfo(name){
   document.getElementById('traitConflict').textContent=conflicts.length?`Konflikt mit: ${conflicts.join(', ')}`:'';
   document.getElementById('traitInfoOv').classList.remove('hidden');
 }
+const STAT_INFO = {
+  strength:    {cls:'str', icon:'dumbbell',  desc:'Körperliche Stärke und Durchsetzungskraft. Misst, wie viel du körperlich bewegen und aushalten kannst.',
+                raise:'Idle im 🏋️ Fitnessstudio. Begleiter wie Schäferhund/Dobermann und Artefakte wie Eisenherz & Kraftband geben Boni.',
+                use:'Erhöht die Siegchance in kraftbasierten Dungeons und schaltet Optionen in Events frei, die Stärke verlangen.'},
+  knowledge:   {cls:'kno', icon:'book-open', desc:'Wissen, Bildung und Verständnis. Dein geistiges Kapital und deine Problemlösefähigkeit.',
+                raise:'Idle in 📚 Bibliothek, 🏛️ Museum oder 🎓 Universität. Eulen, Raben und Artefakte wie Wissenssplitter helfen.',
+                use:'Wichtig für rätsel- und wissensbasierte Dungeons und für kluge Event-Entscheidungen.'},
+  endurance:   {cls:'end', icon:'activity',  desc:'Ausdauer und Widerstandskraft. Wie lange du durchhältst und wie weit du kommst.',
+                raise:'Idle in 🌳 Park oder ✈️ Flughafen. Husky, Kamel, Reittiere und der Wanderer-Kompass steigern sie.',
+                use:'Entscheidend für lange Dungeons und Reise-Events; senkt das Risiko bei Erschöpfungs-Situationen.'},
+  social:      {cls:'soc', icon:'users',     desc:'Soziale Fähigkeiten und Charisma. Wie gut du dich mit Menschen verbindest.',
+                raise:'Idle in ☕ Café, 🍽️ Restaurant oder 🎓 Universität. Papagei, Otter und das Charisma-Amulett helfen.',
+                use:'Öffnet Dialog-Optionen in Events, hilft beim Sprachenlernen und bei sozialen Dungeons.'},
+  creativity:  {cls:'cre', icon:'palette',   desc:'Kreativität und Vorstellungskraft. Deine Fähigkeit, Neues zu schaffen und um die Ecke zu denken.',
+                raise:'Idle in 🏛️ Museum oder ☕ Café. Pfau, Fuchs und die Kreativfeder geben Boni.',
+                use:'Schaltet kreative Lösungswege in Events frei und stärkt kunst-/ideenbasierte Dungeons.'},
+  mindfulness: {cls:'min', icon:'leaf',      desc:'Achtsamkeit und innere Ruhe. Deine Balance, Fokus und emotionale Stabilität.',
+                raise:'Idle im 🕌 Tempel oder 🌳 Park. Russisch Blau, Eule und der Meditationsstein helfen.',
+                use:'Gibt Zugang zu weisen Event-Entscheidungen und schützt vor impulsiven Fehlern.'},
+};
+function showStatInfo(key){
+  const s=STAT_INFO[key]; if(!s) return;
+  const ic=document.getElementById('si-icon');
+  ic.className='stat-icon '+s.cls; ic.innerHTML=`<i data-lucide="${s.icon}"></i>`;
+  document.getElementById('si-name').textContent=sl(key);
+  document.getElementById('si-value').textContent=`Aktuell: ${fmtStat(S.stats[key])} / ${STAT_MAX}`;
+  document.getElementById('si-desc').textContent=s.desc;
+  document.getElementById('si-raise').textContent=s.raise;
+  document.getElementById('si-use').textContent=s.use;
+  document.getElementById('statInfoOv').classList.remove('hidden');
+  lucide.createIcons();
+}
 function fmtStat(v){ const r=parseFloat(v.toFixed(3)); return r===Math.floor(r)?String(r):r.toFixed(3).replace(/0+$/,''); }
 function addLog(icon,html){ const l=document.getElementById('logList'),li=document.createElement('li'); li.className='log-item fresh'; li.innerHTML=`<span style="flex-shrink:0">${icon}</span><span>${html}</span>`; l.insertBefore(li,l.firstChild); while(l.children.length>30)l.removeChild(l.lastChild); setTimeout(()=>li.classList.remove('fresh'),3000); }
 let tt; function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('show'),3400); }
 function hidePanel(id){ document.getElementById(id).classList.add('hidden'); }
-function bgClose(e,id){ if(e.target===document.getElementById(id)) hidePanel(id); }
+function bgClose(e,id){ const el=document.getElementById(id); if(el.classList.contains('locked')) return; if(e.target===el) hidePanel(id); }
 
 // Tab nav: switch directly between tabs without manually closing first
 const TAB_OVERLAYS=['dungOv','collOv','friendsOv','artOv','invOv','haendlerOv'];
@@ -3087,9 +3179,9 @@ resumeTimers();
   sync();
 })();
 
-// First-time setup: open profile if name is still default
-if(profileData.name==='Wanderer' && !profileData.age && !profileData.city){
-  setTimeout(()=>openProfile(), 600);
+// First-time setup: locked onboarding flow until the player makes their choices
+if(!profileData.onboarded){
+  setTimeout(()=>startOnboarding(), 500);
 }
 
 function syncNearbyFromState(){
