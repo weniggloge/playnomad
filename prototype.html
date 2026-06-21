@@ -595,6 +595,12 @@ hr.divider {
 .fx.comp  { border-color: var(--gold);  color: var(--gold); }
 .fx.art   { border-color: #f59e0b;      color: #fbbf24; }
 .fx.loot  { border-color: #22d3ee;     color: #67e8f9; }
+/* Gold earned popup */
+#goldPop { position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:rgba(10,9,20,.92);border:1px solid var(--gold);border-radius:18px;padding:22px 36px;text-align:center;pointer-events:none;z-index:9999;opacity:0;transition:opacity .2s,transform .25s; }
+#goldPop.show { opacity:1;transform:translate(-50%,-60%) scale(1); }
+#goldPop.hide { opacity:0;transform:translate(-50%,-70%) scale(.9); }
+.gp-amount { font-size:2rem;font-weight:800;color:var(--gold); }
+.gp-label  { font-size:.68rem;color:var(--muted);margin-top:2px; }
 /* Inventory */
 .inv-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--s2);margin-bottom:8px;border-left:3px solid #6b7280; }
 .inv-item.common    { border-left-color:#6b7280; }
@@ -1154,14 +1160,20 @@ hr.divider {
   </div>
 </div>
 
-<!-- INVENTORY OVERLAY (view-only — sell via Händler) -->
+<!-- INVENTORY OVERLAY -->
 <div class="overlay hidden" id="invOv" onclick="bgClose(event,'invOv')">
   <div class="big-modal">
     <div class="modal-hdr">
       <div class="modal-title">Tasche</div>
       <button class="modal-close" onclick="hidePanel('invOv')">✕</button>
     </div>
-    <div style="font-size:.67rem;color:var(--muted);margin-bottom:12px">Gesammelter Loot. Zum Händler, um ihn zu verkaufen.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:.67rem;color:var(--muted)">Verkaufen beim Händler</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+        <div style="font-size:.58rem;color:var(--muted)">Schattengold</div>
+        <div style="font-size:1.1rem;font-weight:800;color:var(--gold)" class="gold-display">0 ◈</div>
+      </div>
+    </div>
     <div id="invList"></div>
   </div>
 </div>
@@ -1194,13 +1206,9 @@ hr.divider {
     </div>
     <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border-radius:10px;margin-bottom:14px">
       <span style="font-size:1.4rem">🧙</span>
-      <div style="flex:1">
+      <div>
         <div style="font-size:.75rem;font-weight:600">Alter Krämer</div>
         <div style="font-size:.65rem;color:var(--muted);margin-top:1px">„Was hast du mitgebracht? Ich zahle fair."</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:.62rem;color:var(--muted)">Dein Gold</div>
-        <div style="font-size:1rem;font-weight:800;color:var(--gold)" class="gold-display">0 ◈</div>
       </div>
     </div>
     <div id="haendlerList"></div>
@@ -2054,6 +2062,14 @@ function renderHaendler(){
       </button>
     </div>`).join('');
 }
+let goldPopTm;
+function showGoldPop(amount){
+  const el=document.getElementById('goldPop');
+  document.getElementById('goldPopAmt').textContent=`+${amount} ◈`;
+  el.classList.remove('hide'); el.classList.add('show');
+  clearTimeout(goldPopTm);
+  goldPopTm=setTimeout(()=>{ el.classList.remove('show'); el.classList.add('hide'); },1800);
+}
 function sellItem(uid){
   const idx=S.inventory.findIndex(x=>String(x.uid)===String(uid));
   if(idx<0) return;
@@ -2061,14 +2077,14 @@ function sellItem(uid){
   S.gold+=item.val;
   S.inventory.splice(idx,1);
   renderHaendler(); renderInventory(); updateGoldDisplay(); updateUI();
-  toast(`Verkauft: ${item.i} ${item.n} · +${item.val} ◈`);
+  showGoldPop(item.val);
 }
 function sellAll(){
   if(!S.inventory.length){ toast('„Deine Tasche ist leer."'); return; }
   const total=S.inventory.reduce((s,x)=>s+x.val,0);
   S.gold+=total; S.inventory=[];
   renderHaendler(); renderInventory(); updateGoldDisplay(); updateUI();
-  toast(`Alles verkauft · +${total} ◈`);
+  showGoldPop(total);
 }
 function updateGoldDisplay(){
   document.querySelectorAll('.gold-display').forEach(el=>{ el.textContent=S.gold+' ◈'; });
@@ -2284,5 +2300,10 @@ if(profileData.name==='Wanderer' && !profileData.age && !profileData.city){
   setTimeout(()=>openProfile(), 600);
 }
 </script>
+<!-- GOLD EARNED POPUP -->
+<div id="goldPop">
+  <div class="gp-amount" id="goldPopAmt"></div>
+  <div class="gp-label">Schattengold erhalten</div>
+</div>
 </body>
 </html>
