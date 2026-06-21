@@ -12,28 +12,34 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #07080e;
-  --s1: #0c0e1c;
-  --s2: #111426;
-  --s3: #16192e;
-  --border: #1c2038;
-  --b2: #252b48;
-  --text: #dde2f5;
-  --t2: #8890b5;
-  --muted: #404870;
-  --gold: #f0a42a;
-  --gdim: #6b4a10;
-  --green: #1fd47a;
-  --red: #ef4060;
-  --c-common: #4a5178;
+  --bg: #05060f;
+  --s1: #0f1530;
+  --s2: #16204a;
+  --s3: #1f2c5e;
+  --border: #2e3d72;
+  --b2: #41548f;
+  --text: #eaf0ff;
+  --t2: #9aa6d6;
+  --muted: #5a6aa0;
+  --gold: #ffb12e;
+  --gdim: #7a5210;
+  --green: #1fffa0;
+  --red: #ff3d6e;
+  --cyan: #19e6ff;
+  --violet: #9d5bff;
+  --c-common: #5a6aa0;
   --c-uncommon: #3b82f6;
-  --c-epic: #8b5cf6;
-  --c-legendary: #f0a42a;
+  --c-epic: #9d5bff;
+  --c-legendary: #ffb12e;
 }
 
 html { height: 100%; }
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(157,91,255,.10), transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(25,230,255,.08), transparent 40%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
@@ -873,39 +879,76 @@ html.modal-open, body.modal-open { overflow: hidden !important; }
    DESIGN OVERHAUL — Angular + Emotional
 ══════════════════════════════════════════ */
 
-/* New accent variables */
-:root {
-  --cyan: #00e5ff;
-  --violet: #7b2fff;
-  --red-hot: #ff3d2e;
-}
-
 /* ── ANGULAR BORDER-RADIUS OVERRIDE ── */
-.panel, .log-panel { border-radius: 4px !important; }
-.big-modal, .dung-modal, .friends-modal, .event-card, .outcome-card, .idle-choose { border-radius: 6px !important; }
-.dc, .comp-slot, .nearby-player, .friend-card, .idle-panel, .ic-time-btn { border-radius: 3px !important; }
-.loc-btn { border-radius: 3px !important; }
-.np-btn, .coll-open-btn, .gps-btn, .ic-cancel, .idle-cancel, .opt-btn, .cont-btn { border-radius: 3px !important; }
-.art-chip, .lang-tag, .modal-close, .edit-btn { border-radius: 2px !important; }
-.trait-tag, .ev-label, .fx { border-radius: 2px !important; }
-.stat-icon { border-radius: 4px !important; }
-.pf-input, .lang-radio { border-radius: 3px !important; }
-.cc { border-radius: 3px !important; }
-#toast { border-radius: 3px !important; }
-.gps-loc-pill { border-radius: 3px !important; }
-.np-icon { border-radius: 4px !important; }
+.panel, .log-panel { border-radius: 2px !important; }
+.big-modal, .dung-modal, .friends-modal, .event-card, .outcome-card, .idle-choose { border-radius: 2px !important; }
+.dc, .comp-slot, .nearby-player, .friend-card, .idle-panel, .ic-time-btn { border-radius: 2px !important; }
+.loc-btn { border-radius: 2px !important; }
+.np-btn, .coll-open-btn, .gps-btn, .ic-cancel, .idle-cancel, .opt-btn, .cont-btn { border-radius: 2px !important; }
+.art-chip, .lang-tag, .modal-close, .edit-btn { border-radius: 1px !important; }
+.trait-tag, .ev-label, .fx { border-radius: 1px !important; }
+.stat-icon { border-radius: 2px !important; }
+.pf-input, .lang-radio { border-radius: 2px !important; }
+.cc { border-radius: 2px !important; }
+#toast { border-radius: 2px !important; }
+.gps-loc-pill { border-radius: 2px !important; }
+.np-icon { border-radius: 2px !important; }
+.av-icon { border-radius: 3px !important; }
 
-/* ── PANEL — gradient border ── */
-.panel {
+/* ── PANELS — clipped corner + neon edge + accent top-stripe ── */
+.panel, .log-panel {
+  position: relative;
   border: 1px solid transparent !important;
-  background: linear-gradient(var(--s1), var(--s1)) padding-box,
-              linear-gradient(135deg, rgba(0,229,255,.12), rgba(123,47,255,.08)) border-box !important;
+  background:
+    linear-gradient(160deg, #16204a, #0f1530) padding-box,
+    linear-gradient(135deg, var(--cyan), var(--violet) 55%, var(--gold)) border-box !important;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
 }
-.log-panel {
-  border: 1px solid transparent !important;
-  background: linear-gradient(var(--s1), var(--s1)) padding-box,
-              linear-gradient(135deg, rgba(0,229,255,.08), rgba(123,47,255,.06)) border-box !important;
+/* glowing accent bar across the top of every panel */
+.panel::before, .log-panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 14px; height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet), var(--gold));
+  box-shadow: 0 0 10px rgba(25,230,255,.5);
 }
+
+/* ── CARDS — gradient fill (rarity borders preserved) ── */
+.loc-btn, .dc, .nearby-player, .comp-slot, .shop-item {
+  background: linear-gradient(150deg, var(--s2), var(--s1)) !important;
+  border: 1px solid var(--border) !important;
+}
+.cc, .inv-item, .friend-card { background: linear-gradient(150deg, var(--s2), var(--s1)) !important; }
+.dc:hover:not(.running):not(.locked),
+.loc-btn:hover:not(:disabled) {
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 14px rgba(25,230,255,.25), inset 0 0 18px rgba(25,230,255,.05) !important;
+}
+.loc-icon-wrap { background: linear-gradient(150deg, var(--s3), var(--s1)) !important; border: 1px solid var(--border); }
+
+/* ── SECTION LABELS — neon ── */
+.section-label { color: var(--cyan) !important; opacity: .9; }
+.section-label .lucide { stroke: var(--cyan) !important; }
+.type-lbl { color: var(--cyan) !important; border-bottom-color: rgba(25,230,255,.2) !important; }
+
+/* ── AVATAR — glowing ── */
+.av-icon {
+  background: linear-gradient(135deg, var(--violet), #2a1060) !important;
+  border: 1px solid var(--gold) !important;
+  box-shadow: 0 0 16px rgba(157,91,255,.4), inset 0 0 12px rgba(255,177,46,.15);
+}
+.av-name { text-shadow: 0 0 12px rgba(255,177,46,.4); }
+
+/* ── BOTTOM BAR — glass + glow on active ── */
+.bot-bar {
+  background: linear-gradient(180deg, rgba(22,32,74,.85), rgba(15,21,48,.98)) !important;
+  border-top: 1px solid transparent !important;
+  border-image: linear-gradient(90deg, var(--cyan), var(--violet), var(--gold)) 1 !important;
+  backdrop-filter: blur(10px);
+}
+
+/* ── BUTTONS — sharper, brighter ── */
+.cont-btn, .shop-buy-btn { box-shadow: 0 0 14px rgba(255,177,46,.3); }
+.gps-btn { box-shadow: 0 0 12px rgba(255,177,46,.2); }
 
 /* ── STAT BARS — glow effect ── */
 .stat-fill.str { box-shadow: 0 0 6px #f87171aa; }
