@@ -3,271 +3,911 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DevelopYourself</title>
+<title>NOMAD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 :root {
-  --bg:#0d0f1a; --surface:#161929; --card:#1e2235; --border:#2a2f4a;
-  --gold:#c9a84c; --gold-dim:#7a6229; --text:#e2e8f0; --muted:#64748b;
-  --common:#4b5563; --uncommon:#2563eb; --epic:#7c3aed; --legendary:#c9a84c;
-  --green:#22c55e; --red:#ef4444;
+  --bg: #07080e;
+  --s1: #0c0e1c;
+  --s2: #111426;
+  --s3: #16192e;
+  --border: #1c2038;
+  --b2: #252b48;
+  --text: #dde2f5;
+  --t2: #8890b5;
+  --muted: #404870;
+  --gold: #f0a42a;
+  --gdim: #6b4a10;
+  --green: #1fd47a;
+  --red: #ef4060;
+  --c-common: #4a5178;
+  --c-uncommon: #3b82f6;
+  --c-epic: #8b5cf6;
+  --c-legendary: #f0a42a;
 }
-body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; padding:16px; }
-h1 { text-align:center; font-size:1.35rem; color:var(--gold); letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
-.subtitle { text-align:center; font-size:.72rem; color:var(--muted); margin-bottom:16px; letter-spacing:1px; }
-.layout { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:960px; margin:0 auto; }
-.panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; }
-.sl { font-size:.64rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin:10px 0 6px; }
-hr.d { border:none; border-top:1px solid var(--border); margin:10px 0; }
 
-/* Avatar */
-.av-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-.av-icon { width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,#4c1d95,#1e1435); border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0; }
-.av-name { font-size:.95rem; font-weight:700; color:var(--gold); }
-.av-level { font-size:.68rem; color:var(--muted); margin-top:2px; }
-.bar-bg { background:var(--border); border-radius:99px; height:6px; overflow:hidden; margin-top:4px; }
-.bar-fill { height:100%; border-radius:99px; transition:width .6s ease; }
-.xp-fill { background:linear-gradient(90deg,var(--gold-dim),var(--gold)); }
+html { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  min-height: 100%;
+  padding: 16px 16px 80px;
+}
 
-/* Stats */
-.sr { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
-.si { font-size:.88rem; width:18px; text-align:center; flex-shrink:0; }
-.sn { font-size:.7rem; width:80px; flex-shrink:0; }
-.sb { flex:1; background:var(--border); border-radius:99px; height:5px; overflow:hidden; }
-.sf { height:100%; border-radius:99px; transition:width .7s; }
-.sv { font-size:.68rem; color:var(--gold); width:22px; text-align:right; flex-shrink:0; }
+/* ── APP TITLE ── */
+.app-title {
+  text-align: center;
+  font-size: .65rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  opacity: .85;
+}
 
-/* Traits */
-.trait-list { display:flex; flex-wrap:wrap; gap:4px; min-height:18px; }
-.tt { background:var(--card); border:1px solid #3b4a6a; border-radius:20px; padding:2px 7px; font-size:.6rem; color:#93c5fd; }
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 12px;
+  max-width: 980px;
+  margin: 0 auto;
+}
 
-/* Companion slots */
-.comp-slots { display:flex; gap:7px; }
-.comp-slot { flex:1; background:var(--card); border:1px solid var(--border); border-radius:9px; padding:7px 4px; min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; transition:border-color .2s; }
-.comp-slot:hover { border-color:var(--gold); }
-.comp-slot.c-common   { border-color:var(--common); }
-.comp-slot.c-uncommon { border-color:var(--uncommon); }
-.comp-slot.c-epic     { border-color:var(--epic); }
-.comp-slot.c-legendary{ border-color:var(--legendary); box-shadow:0 0 6px rgba(201,168,76,.25); }
-.cs-icon { font-size:1.25rem; }
-.cs-name { font-size:.55rem; color:var(--text); text-align:center; }
-.cs-empty { font-size:.56rem; color:var(--muted); }
+/* ── PANEL ── */
+.panel {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
 
-/* Artifacts */
-.art-grid { display:flex; flex-wrap:wrap; gap:4px; min-height:20px; }
-.art-chip { border-radius:6px; padding:2px 7px; font-size:.62rem; display:flex; align-items:center; gap:3px; border:1px solid; position:relative; }
-.art-chip.common   { border-color:var(--common); color:#9ca3af; }
-.art-chip.uncommon { border-color:var(--uncommon); color:#93c5fd; }
-.art-chip.epic     { border-color:var(--epic); color:#c4b5fd; }
-.art-chip.legendary{ border-color:var(--legendary); color:var(--gold); }
-.art-stack { font-size:.55rem; font-weight:700; margin-left:2px; opacity:.8; }
-.art-stack.maxed { color:var(--gold); opacity:1; }
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin: 12px 0 8px;
+}
+.section-label:first-child { margin-top: 0; }
+.section-label .lucide { width: 12px; height: 12px; stroke: var(--muted); flex-shrink: 0; }
 
-/* Languages */
-.lang-list { display:flex; flex-wrap:wrap; gap:4px; }
-.lang-tag { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:2px 7px; font-size:.63rem; color:var(--muted); transition:all .3s; }
-.lang-tag.known { border-color:#3b82f6; color:#93c5fd; background:#0f1f3d; }
+hr.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
+}
 
-/* Right col */
-.right-col { display:flex; flex-direction:column; gap:12px; }
-.loc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
-.loc-btn { background:var(--card); border:1px solid var(--border); border-radius:9px; padding:9px 4px; cursor:pointer; text-align:center; transition:all .2s; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; }
-.loc-btn:hover:not(:disabled) { border-color:var(--gold); background:#1a1c2e; transform:translateY(-1px); }
-.loc-btn:disabled { opacity:.45; cursor:not-allowed; }
-.loc-btn.has-event::after { content:'!'; position:absolute; top:4px; right:5px; background:var(--gold); color:#000; border-radius:50%; width:12px; height:12px; font-size:.56rem; font-weight:700; line-height:12px; text-align:center; }
-.li { font-size:1.25rem; }
-.ln { font-size:.59rem; color:var(--text); }
-.ls { font-size:.54rem; color:var(--muted); }
+/* ── AVATAR ── */
+.av-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.av-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3730a3, #1e1435);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--gold);
+}
+.av-icon .lucide { width: 24px; height: 24px; }
+.av-meta { flex: 1; min-width: 0; }
+.av-name { font-size: .95rem; font-weight: 700; color: var(--gold); }
+.av-level { font-size: .67rem; color: var(--t2); margin-top: 2px; }
+.xp-track { background: var(--border); border-radius: 99px; height: 5px; overflow: hidden; margin-top: 5px; }
+.xp-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gdim), var(--gold)); transition: width .6s ease; }
 
-/* Idle */
-.idle-panel { background:var(--card); border:1px solid var(--gold-dim); border-radius:10px; padding:11px; }
-.idle-loc { font-size:.78rem; font-weight:600; color:var(--gold); margin-bottom:4px; }
-.idle-bar-bg { background:var(--border); border-radius:99px; height:7px; overflow:hidden; margin:5px 0; }
-.idle-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold-dim),var(--gold)); transition:width .5s linear; }
-.idle-timer { font-size:.7rem; color:var(--muted); text-align:right; }
-.idle-cancel { background:none; border:1px solid var(--border); border-radius:6px; color:var(--muted); padding:3px 9px; font-size:.62rem; cursor:pointer; margin-top:5px; }
-.idle-cancel:hover { border-color:var(--red); color:var(--red); }
+/* ── STATS ── */
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.stat-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.stat-icon .lucide { width: 14px; height: 14px; }
+.stat-icon.str { background: rgba(248,113,113,.15); color: #f87171; }
+.stat-icon.kno { background: rgba(96,165,250,.15); color: #60a5fa; }
+.stat-icon.end { background: rgba(52,211,153,.15); color: #34d399; }
+.stat-icon.soc { background: rgba(192,132,252,.15); color: #c084fc; }
+.stat-icon.cre { background: rgba(251,191,36,.15); color: #fbbf24; }
+.stat-icon.min { background: rgba(34,211,238,.15); color: #22d3ee; }
 
-/* Log */
-.log-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; flex:1; }
-.log-list { list-style:none; }
-.log-item { font-size:.68rem; color:var(--muted); padding:3px 0; border-bottom:1px solid var(--border); display:flex; gap:5px; align-items:flex-start; }
-.log-item:last-child { border-bottom:none; }
-.log-item.fresh { color:var(--text); }
-.lg { color:var(--gold); font-weight:600; }
-.lt { color:#a78bfa; font-weight:600; }
+.stat-name { font-size: .68rem; color: var(--t2); width: 72px; flex-shrink: 0; }
+.stat-track { flex: 1; background: var(--border); border-radius: 99px; height: 4px; overflow: hidden; }
+.stat-fill { height: 100%; border-radius: 99px; transition: width .7s; }
+.stat-fill.str { background: #f87171; }
+.stat-fill.kno { background: #60a5fa; }
+.stat-fill.end { background: #34d399; }
+.stat-fill.soc { background: #c084fc; }
+.stat-fill.cre { background: #fbbf24; }
+.stat-fill.min { background: #22d3ee; }
+.stat-val { font-size: .68rem; color: var(--gold); width: 28px; text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
 
-/* Bottom bar */
-.bot-bar { display:flex; gap:7px; max-width:960px; margin:11px auto 0; }
-.bot-btn { flex:1; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px; font-size:.72rem; color:var(--muted); cursor:pointer; transition:all .2s; }
-.bot-btn:hover { border-color:var(--gold); color:var(--gold); }
-.bot-btn span { display:block; font-size:1.1rem; margin-bottom:2px; }
-.bot-btn .badge { display:inline-block; background:var(--red); color:#fff; border-radius:99px; font-size:.55rem; padding:1px 5px; margin-left:4px; }
+/* ── TRAITS ── */
+.trait-list { display: flex; flex-wrap: wrap; gap: 4px; min-height: 18px; }
+.trait-tag {
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: .59rem;
+  color: #93c5fd;
+}
 
-/* OVERLAYS */
-.overlay { position:fixed; inset:0; background:rgba(0,0,0,.88); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; backdrop-filter:blur(5px); }
-.overlay.hidden { display:none; }
-@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+/* ── COMPANION SLOTS ── */
+.comp-slots { display: flex; gap: 7px; }
+.comp-slot {
+  flex: 1;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 4px;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.comp-slot:hover { border-color: var(--gold); }
+.comp-slot.c-common    { border-color: var(--c-common); }
+.comp-slot.c-uncommon  { border-color: var(--c-uncommon); }
+.comp-slot.c-epic      { border-color: var(--c-epic); }
+.comp-slot.c-legendary { border-color: var(--c-legendary); box-shadow: 0 0 8px rgba(240,164,42,.2); }
+.cs-emoji { font-size: 1.25rem; }
+.cs-name { font-size: .55rem; color: var(--text); text-align: center; }
+.cs-empty { font-size: .56rem; color: var(--muted); }
 
-/* Idle choose */
-.idle-choose { background:var(--surface); border:1px solid var(--gold-dim); border-radius:16px; max-width:380px; width:100%; padding:22px; animation:fadeUp .3s ease; text-align:center; }
-.ic-title { font-size:.95rem; font-weight:700; color:var(--gold); margin-bottom:5px; }
-.ic-sub { font-size:.72rem; color:var(--muted); margin-bottom:16px; line-height:1.5; }
-.ic-times { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:10px; }
-.ic-time-btn { background:var(--card); border:1px solid var(--border); border-radius:9px; padding:11px; cursor:pointer; transition:all .2s; }
-.ic-time-btn:hover { border-color:var(--gold); }
-.ic-time-btn .dur { font-size:1rem; font-weight:700; color:var(--gold); }
-.ic-time-btn .rew { font-size:.59rem; color:var(--muted); margin-top:2px; }
-.ic-cancel { background:none; border:1px solid var(--border); border-radius:7px; color:var(--muted); padding:6px 14px; font-size:.7rem; cursor:pointer; }
+/* ── COLL BUTTON ── */
+.coll-open-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--t2);
+  padding: 7px;
+  font-size: .65rem;
+  cursor: pointer;
+  margin-top: 7px;
+  transition: all .2s;
+  font-family: inherit;
+}
+.coll-open-btn:hover { border-color: var(--gold); color: var(--gold); }
+.coll-open-btn .lucide { width: 13px; height: 13px; }
 
-/* Event */
-.event-card { background:var(--surface); border:1px solid var(--gold-dim); border-radius:16px; max-width:500px; width:100%; padding:22px; animation:fadeUp .3s ease; }
-.ev-meta { display:flex; align-items:center; gap:7px; margin-bottom:9px; }
-.ev-lb { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2px 8px; font-size:.62rem; color:var(--muted); }
-.ev-title { font-size:1rem; font-weight:700; color:var(--gold); margin-bottom:8px; }
-.ev-text { font-size:.78rem; line-height:1.7; color:#cbd5e1; margin-bottom:14px; }
-.opt-btn { display:block; width:100%; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:9px 11px; margin-bottom:6px; cursor:pointer; text-align:left; transition:all .2s; }
-.opt-btn:hover:not(:disabled) { border-color:var(--gold); }
-.opt-btn:disabled { opacity:.35; cursor:not-allowed; }
-.ot { font-size:.76rem; color:var(--text); display:block; }
-.or { font-size:.6rem; color:#f59e0b; margin-top:2px; display:block; }
+/* ── ARTIFACTS ── */
+.art-grid { display: flex; flex-wrap: wrap; gap: 4px; min-height: 20px; }
+.art-chip {
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: .61rem;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid;
+}
+.art-chip.common    { border-color: var(--c-common);    color: #9ca3af; }
+.art-chip.uncommon  { border-color: var(--c-uncommon);  color: #93c5fd; }
+.art-chip.epic      { border-color: var(--c-epic);      color: #c4b5fd; }
+.art-chip.legendary { border-color: var(--c-legendary); color: var(--gold); }
+.art-stack { font-size: .55rem; font-weight: 700; margin-left: 2px; opacity: .8; }
+.art-stack.maxed { color: var(--gold); opacity: 1; }
 
-/* Outcome */
-.outcome-card { background:var(--surface); border:1px solid var(--gold); border-radius:16px; max-width:460px; width:100%; padding:22px; animation:fadeUp .3s ease; }
-.out-text { font-size:.8rem; line-height:1.8; color:#cbd5e1; margin-bottom:14px; border-left:3px solid var(--gold-dim); padding-left:11px; font-style:italic; white-space:pre-line; }
-.out-fx { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:13px; }
-.fx { border-radius:20px; padding:2px 8px; font-size:.65rem; border:1px solid; }
-.fx.pos { border-color:var(--green); color:#4ade80; }
-.fx.neg { border-color:var(--red); color:#f87171; }
-.fx.trait { border-color:#a78bfa; color:#c4b5fd; }
-.fx.comp { border-color:var(--gold); color:var(--gold); }
-.fx.art { border-color:#f59e0b; color:#fbbf24; }
-.cont-btn { display:block; width:100%; background:linear-gradient(135deg,var(--gold-dim),var(--gold)); color:#000; font-weight:700; border:none; border-radius:8px; padding:10px; font-size:.82rem; cursor:pointer; }
+/* ── LANGUAGES ── */
+.lang-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.lang-tag {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: .62rem;
+  color: var(--muted);
+  transition: all .3s;
+}
+.lang-tag.known { border-color: #3b82f6; color: #93c5fd; background: #0f1f3d; }
 
-/* Collection modal */
-.big-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:740px; width:100%; max-height:88vh; overflow-y:auto; padding:20px; animation:fadeUp .3s ease; }
-.big-modal::-webkit-scrollbar { width:5px; }
-.big-modal::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-.modal-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-.modal-title { font-size:.95rem; font-weight:700; color:var(--gold); }
-.modal-close { background:none; border:1px solid var(--border); border-radius:7px; color:var(--muted); padding:3px 8px; cursor:pointer; font-size:.72rem; }
-.modal-close:hover { border-color:var(--gold); color:var(--gold); }
-.type-lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin:11px 0 6px; padding-bottom:3px; border-bottom:1px solid var(--border); }
-.coll-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:6px; }
-.cc { background:var(--card); border-radius:8px; padding:8px; text-align:center; border:1px solid; position:relative; }
-.cc.common   { border-color:var(--common); }
-.cc.uncommon { border-color:var(--uncommon); }
-.cc.epic     { border-color:var(--epic); }
-.cc.legendary{ border-color:var(--legendary); box-shadow:0 0 6px rgba(201,168,76,.2); }
-.cc.locked { opacity:.28; filter:grayscale(.9); }
-.cc.owned { cursor:pointer; }
-.cc.owned:hover { transform:translateY(-2px); }
-.cc.is-active { box-shadow:0 0 0 2px var(--gold); }
-.cc .rb { height:2px; border-radius:99px; margin-bottom:5px; }
-.common .rb   { background:var(--common); }
-.uncommon .rb { background:var(--uncommon); }
-.epic .rb     { background:var(--epic); }
-.legendary .rb{ background:var(--legendary); }
-.cc-rl { font-size:.52rem; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
-.common .cc-rl   { color:var(--common); }
-.uncommon .cc-rl { color:var(--uncommon); }
-.epic .cc-rl     { color:var(--epic); }
-.legendary .cc-rl{ color:var(--legendary); }
-.cc-ic { font-size:1.4rem; margin-bottom:2px; }
-.cc-nm { font-size:.62rem; font-weight:600; color:var(--text); margin-bottom:2px; }
-.cc-bn { font-size:.56rem; color:var(--gold); margin-bottom:2px; }
-.cc-sp { font-size:.52rem; color:var(--muted); line-height:1.4; }
-.cc-rq { font-size:.52rem; color:#f59e0b; margin-top:2px; }
-.act-star { position:absolute; top:3px; right:4px; font-size:.65rem; }
+/* ── RIGHT COLUMN ── */
+.right-col { display: flex; flex-direction: column; gap: 12px; }
 
-/* Dungeon modal */
-.dung-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:480px; width:100%; padding:22px; animation:fadeUp .3s ease; }
-.dc { background:var(--card); border-radius:9px; padding:11px; margin-bottom:7px; border:1px solid var(--border); cursor:pointer; transition:all .2s; }
-.dc:hover:not(.running) { border-color:var(--gold); }
-.dc.running { border-color:var(--epic); opacity:.65; cursor:not-allowed; }
-.dc.locked  { opacity:.55; cursor:not-allowed; }
-.loc-btn.has-dungeon::before { content:'⚔'; position:absolute; top:4px; left:5px; font-size:.58rem; color:var(--red); }
-.loc-btn.loc-locked { opacity:.35; cursor:not-allowed; }
-.loc-btn.loc-locked:hover { transform:none; border-color:var(--border); background:var(--card); }
-.loc-btn.loc-verified { border-color:var(--green) !important; }
-.loc-btn.loc-verified .ln { color:var(--green); }
-.dc-name { font-size:.82rem; font-weight:600; color:var(--text); margin-bottom:3px; }
-.dc-meta { font-size:.63rem; color:var(--muted); display:flex; gap:10px; margin-bottom:4px; }
-.dc-prob { font-size:.68rem; }
-.dc-prob.hi { color:var(--green); }
-.dc-prob.mi { color:#f59e0b; }
-.dc-prob.lo { color:var(--red); }
+/* ── GPS BUTTON ── */
+.gps-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: linear-gradient(135deg, var(--s2), var(--s3));
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  color: var(--gold);
+  padding: 8px;
+  font-size: .7rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: all .2s;
+  font-family: inherit;
+}
+.gps-btn:hover { background: linear-gradient(135deg, var(--s3), var(--b2)); }
+.gps-btn .lucide { width: 14px; height: 14px; flex-shrink: 0; }
+.gps-status { font-size: .6rem; color: var(--muted); text-align: center; margin-bottom: 8px; }
 
-/* Friends modal */
-.friends-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:500px; width:100%; padding:22px; animation:fadeUp .3s ease; }
-.friend-section { margin-bottom:16px; }
-.nearby-player { background:var(--card); border:1px solid var(--border); border-radius:9px; padding:10px; margin-bottom:6px; }
-.np-header { display:flex; align-items:center; gap:9px; margin-bottom:7px; }
-.np-icon { font-size:1.4rem; width:36px; height:36px; background:var(--surface); border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.np-name { font-size:.8rem; font-weight:600; color:var(--text); }
-.np-lang { font-size:.63rem; color:var(--muted); margin-top:1px; }
-.np-bar-wrap { margin-bottom:5px; }
-.np-bar-lbl { font-size:.6rem; color:var(--muted); margin-bottom:2px; display:flex; justify-content:space-between; }
-.np-bar-bg { background:var(--border); border-radius:99px; height:5px; overflow:hidden; }
-.np-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#1d4ed8,#3b82f6); transition:width .4s; }
-.np-btn { background:none; border:1px solid var(--border); border-radius:6px; color:var(--muted); padding:4px 10px; font-size:.63rem; cursor:pointer; transition:all .2s; }
-.np-btn:hover { border-color:#3b82f6; color:#93c5fd; }
-.np-btn:disabled { opacity:.4; cursor:not-allowed; }
-.friend-card { background:var(--card); border:1px solid var(--green); border-radius:9px; padding:9px; margin-bottom:6px; display:flex; align-items:center; gap:10px; }
-.friend-card .fc-icon { font-size:1.3rem; }
-.fc-name { font-size:.78rem; font-weight:600; color:var(--text); }
-.fc-lang { font-size:.62rem; color:var(--muted); margin-top:1px; }
-.fc-lang-learn { font-size:.6rem; color:var(--gold); margin-top:2px; }
+.gps-loc-suggestions { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; min-height: 0; }
+.gps-loc-pill {
+  background: var(--s2);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  color: var(--gold);
+  padding: 3px 12px;
+  font-size: .68rem;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+}
+.gps-loc-pill:hover { background: var(--gold); color: #000; }
 
-/* Toast */
-#toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(60px); background:var(--card); border:1px solid var(--gold); border-radius:8px; padding:8px 16px; font-size:.74rem; color:var(--gold); transition:transform .35s,opacity .35s; opacity:0; pointer-events:none; z-index:2000; text-align:center; max-width:340px; }
-#toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
-.gps-btn { display:block; width:100%; background:linear-gradient(135deg,#1e2235,#2a2f4a); border:1px solid var(--gold); border-radius:7px; color:var(--gold); padding:6px; font-size:.7rem; cursor:pointer; margin-bottom:6px; transition:all .2s; }
-.gps-status { font-size:.6rem; color:var(--muted); text-align:center; margin-bottom:7px; }
-.gps-loc-suggestions { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; min-height:0; }
-.gps-loc-btn { background:var(--card); border:1px solid var(--gold); border-radius:7px; color:var(--gold); padding:4px 10px; font-size:.7rem; cursor:pointer; transition:all .2s; }
-.gps-loc-btn:hover { background:var(--gold); color:#000; }
+/* ── IDLE RUNNING PANEL ── */
+#idleWrap { display: none; margin-bottom: 10px; }
+.idle-panel {
+  background: var(--s2);
+  border: 1px solid var(--gdim);
+  border-radius: 11px;
+  padding: 12px 14px;
+}
+.idle-loc { font-size: .78rem; font-weight: 600; color: var(--gold); margin-bottom: 5px; }
+.idle-track { background: var(--border); border-radius: 99px; height: 6px; overflow: hidden; margin: 6px 0; }
+.idle-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--gdim), var(--gold));
+  transition: width .5s linear;
+}
+.idle-timer { font-size: .67rem; color: var(--muted); text-align: right; }
+.idle-cancel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  padding: 4px 10px;
+  font-size: .62rem;
+  cursor: pointer;
+  margin-top: 7px;
+  transition: all .2s;
+  font-family: inherit;
+}
+.idle-cancel:hover { border-color: var(--red); color: var(--red); }
+
+/* ── LOCATION GRID ── */
+.loc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+.loc-btn {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 6px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  font-family: inherit;
+}
+.loc-btn:hover:not(:disabled) { border-color: var(--gold); background: var(--s3); transform: translateY(-1px); }
+.loc-btn:disabled { opacity: .45; cursor: not-allowed; }
+.loc-btn .lucide { width: 20px; height: 20px; stroke: var(--t2); }
+.loc-btn:hover:not(:disabled) .lucide { stroke: var(--gold); }
+
+.loc-icon-wrap {
+  width: 38px;
+  height: 38px;
+  background: var(--s3);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.loc-name { font-size: .59rem; color: var(--text); font-weight: 500; }
+.loc-stats { font-size: .52rem; color: var(--muted); }
+
+/* Event / dungeon badges */
+.loc-btn.has-event::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  background: var(--gold);
+  border-radius: 50%;
+  border: 1px solid var(--bg);
+}
+.loc-btn.has-dungeon::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 7px;
+  height: 7px;
+  background: var(--red);
+  border-radius: 50%;
+  border: 1px solid var(--bg);
+}
+.loc-btn.loc-locked { opacity: .35; cursor: not-allowed; }
+.loc-btn.loc-locked:hover { transform: none; border-color: var(--border); background: var(--s2); }
+.loc-btn.loc-verified { border-color: var(--green) !important; }
+.loc-btn.loc-verified .loc-name { color: var(--green); }
+
+/* ── LOG PANEL ── */
+.log-panel {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  flex: 1;
+}
+.log-list { list-style: none; }
+.log-item {
+  font-size: .67rem;
+  color: var(--muted);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+.log-item:last-child { border-bottom: none; }
+.log-item.fresh { color: var(--text); }
+.lg { color: var(--gold); font-weight: 600; }
+.lt { color: #a78bfa; font-weight: 600; }
+
+/* ── BOTTOM TAB BAR ── */
+.bot-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: var(--s1);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  padding: 0 8px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+.bot-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: .6rem;
+  font-family: inherit;
+  font-weight: 500;
+  transition: color .2s;
+  position: relative;
+}
+.bot-tab:hover { color: var(--gold); }
+.bot-tab .lucide { width: 18px; height: 18px; stroke: currentColor; }
+.bot-tab .badge {
+  position: absolute;
+  top: 8px;
+  right: calc(50% - 16px);
+  background: var(--red);
+  color: #fff;
+  border-radius: 99px;
+  font-size: .5rem;
+  padding: 1px 4px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ── OVERLAYS ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(6px);
+}
+.overlay.hidden { display: none; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── IDLE CHOOSE OVERLAY ── */
+.idle-choose {
+  background: var(--s1);
+  border: 1px solid var(--gdim);
+  border-radius: 18px;
+  max-width: 380px;
+  width: 100%;
+  padding: 24px;
+  animation: fadeUp .3s ease;
+  text-align: center;
+}
+.ic-title { font-size: .95rem; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+.ic-sub { font-size: .7rem; color: var(--t2); margin-bottom: 18px; line-height: 1.6; }
+.ic-times { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.ic-time-btn {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+  text-align: center;
+}
+.ic-time-btn:hover { border-color: var(--gold); background: var(--s3); }
+.ic-dur { font-size: 1rem; font-weight: 700; color: var(--gold); display: block; }
+.ic-rew { font-size: .59rem; color: var(--t2); margin-top: 3px; display: block; }
+.ic-proto {
+  font-size: .52rem;
+  color: var(--muted);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.ic-proto .lucide { width: 10px; height: 10px; }
+.ic-cancel {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 7px 16px;
+  font-size: .7rem;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+}
+.ic-cancel:hover { border-color: var(--red); color: var(--red); }
+
+/* ── EVENT OVERLAY ── */
+.event-card {
+  background: var(--s1);
+  border: 1px solid var(--gdim);
+  border-radius: 18px;
+  max-width: 500px;
+  width: 100%;
+  padding: 24px;
+  animation: fadeUp .3s ease;
+}
+.ev-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+.ev-label {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 9px;
+  font-size: .61rem;
+  color: var(--t2);
+}
+.ev-title { font-size: 1rem; font-weight: 700; color: var(--gold); margin-bottom: 9px; }
+.ev-text { font-size: .77rem; line-height: 1.75; color: #cbd5e1; margin-bottom: 16px; }
+.opt-btn {
+  display: block;
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all .2s;
+  font-family: inherit;
+}
+.opt-btn:hover:not(:disabled) { border-color: var(--gold); background: var(--s3); }
+.opt-btn:disabled { opacity: .35; cursor: not-allowed; }
+.ot { font-size: .75rem; color: var(--text); display: block; }
+.or { font-size: .6rem; color: #f59e0b; margin-top: 2px; display: block; }
+
+/* ── OUTCOME OVERLAY ── */
+.outcome-card {
+  background: var(--s1);
+  border: 1px solid var(--b2);
+  border-radius: 18px;
+  max-width: 460px;
+  width: 100%;
+  padding: 24px;
+  animation: fadeUp .3s ease;
+}
+.out-text {
+  font-size: .79rem;
+  line-height: 1.85;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+  border-left: 3px solid var(--gdim);
+  padding-left: 12px;
+  font-style: italic;
+  white-space: pre-line;
+}
+.out-fx { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; }
+.fx {
+  border-radius: 20px;
+  padding: 2px 9px;
+  font-size: .64rem;
+  border: 1px solid;
+}
+.fx.pos   { border-color: var(--green); color: #4ade80; }
+.fx.neg   { border-color: var(--red);   color: #f87171; }
+.fx.trait { border-color: #a78bfa;      color: #c4b5fd; }
+.fx.comp  { border-color: var(--gold);  color: var(--gold); }
+.fx.art   { border-color: #f59e0b;      color: #fbbf24; }
+.cont-btn {
+  display: block;
+  width: 100%;
+  background: linear-gradient(135deg, var(--gdim), var(--gold));
+  color: #000;
+  font-weight: 700;
+  border: none;
+  border-radius: 9px;
+  padding: 11px;
+  font-size: .82rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .2s;
+}
+.cont-btn:hover { opacity: .9; }
+
+/* ── BIG MODAL (Collection) ── */
+.big-modal {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  max-width: 740px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 22px;
+  animation: fadeUp .3s ease;
+}
+.big-modal::-webkit-scrollbar { width: 4px; }
+.big-modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.modal-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.modal-title { font-size: .95rem; font-weight: 700; color: var(--gold); }
+.modal-close {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--t2);
+  padding: 3px 10px;
+  cursor: pointer;
+  font-size: .72rem;
+  font-family: inherit;
+  transition: all .2s;
+}
+.modal-close:hover { border-color: var(--gold); color: var(--gold); }
+
+.type-lbl {
+  font-size: .63rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin: 13px 0 7px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.coll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 7px; }
+.cc {
+  background: var(--s2);
+  border-radius: 9px;
+  padding: 9px;
+  text-align: center;
+  border: 1px solid;
+  position: relative;
+}
+.cc.common    { border-color: var(--c-common); }
+.cc.uncommon  { border-color: var(--c-uncommon); }
+.cc.epic      { border-color: var(--c-epic); }
+.cc.legendary { border-color: var(--c-legendary); box-shadow: 0 0 8px rgba(240,164,42,.2); }
+.cc.locked    { opacity: .28; filter: grayscale(.9); }
+.cc.owned     { cursor: pointer; }
+.cc.owned:hover { transform: translateY(-2px); }
+.cc.is-active { box-shadow: 0 0 0 2px var(--gold); }
+.cc .rb { height: 2px; border-radius: 99px; margin-bottom: 6px; }
+.common   .rb { background: var(--c-common); }
+.uncommon .rb { background: var(--c-uncommon); }
+.epic     .rb { background: var(--c-epic); }
+.legendary.rb { background: var(--c-legendary); }
+.cc-rl { font-size: .5rem; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+.common   .cc-rl { color: var(--c-common); }
+.uncommon .cc-rl { color: var(--c-uncommon); }
+.epic     .cc-rl { color: var(--c-epic); }
+.legendary.cc-rl { color: var(--c-legendary); }
+.cc-ic { font-size: 1.35rem; margin-bottom: 3px; }
+.cc-nm { font-size: .61rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.cc-bn { font-size: .55rem; color: var(--gold); margin-bottom: 2px; }
+.cc-sp { font-size: .51rem; color: var(--muted); line-height: 1.4; }
+.cc-rq { font-size: .51rem; color: #f59e0b; margin-top: 3px; }
+.act-star { position: absolute; top: 3px; right: 4px; font-size: .65rem; }
+
+/* ── DUNGEON MODAL ── */
+.dung-modal {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  max-width: 480px;
+  width: 100%;
+  padding: 24px;
+  animation: fadeUp .3s ease;
+}
+.dc {
+  background: var(--s2);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all .2s;
+}
+.dc:hover:not(.running):not(.locked) { border-color: var(--gold); }
+.dc.running { border-color: var(--c-epic); opacity: .65; cursor: not-allowed; }
+.dc.locked  { opacity: .55; cursor: not-allowed; }
+.dc-name { font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.dc-meta { font-size: .62rem; color: var(--muted); display: flex; gap: 10px; margin-bottom: 4px; }
+.dc-prob { font-size: .67rem; }
+.dc-prob.hi { color: var(--green); }
+.dc-prob.mi { color: #f59e0b; }
+.dc-prob.lo { color: var(--red); }
+
+/* ── FRIENDS MODAL ── */
+.friends-modal {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  max-width: 500px;
+  width: 100%;
+  padding: 24px;
+  animation: fadeUp .3s ease;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.friend-section { margin-bottom: 16px; }
+.nearby-player {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px;
+  margin-bottom: 7px;
+}
+.np-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.np-icon {
+  font-size: 1.3rem;
+  width: 36px;
+  height: 36px;
+  background: var(--s3);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.np-name { font-size: .79rem; font-weight: 600; color: var(--text); }
+.np-lang { font-size: .62rem; color: var(--muted); margin-top: 1px; }
+.np-bar-wrap { margin-bottom: 6px; }
+.np-bar-lbl { font-size: .59rem; color: var(--muted); margin-bottom: 2px; display: flex; justify-content: space-between; }
+.np-bar-bg { background: var(--border); border-radius: 99px; height: 4px; overflow: hidden; }
+.np-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #1d4ed8, #3b82f6); transition: width .4s; }
+.np-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  padding: 5px 12px;
+  font-size: .63rem;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+}
+.np-btn:hover { border-color: #3b82f6; color: #93c5fd; }
+.np-btn:disabled { opacity: .4; cursor: not-allowed; }
+.friend-card {
+  background: var(--s2);
+  border: 1px solid var(--green);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fc-icon { font-size: 1.3rem; }
+.fc-name { font-size: .78rem; font-weight: 600; color: var(--text); }
+.fc-lang { font-size: .62rem; color: var(--muted); margin-top: 1px; }
+.fc-lang-learn { font-size: .59rem; color: var(--gold); margin-top: 2px; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-size: .73rem;
+  color: var(--text);
+  transition: transform .35s, opacity .35s;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2000;
+  text-align: center;
+  max-width: 340px;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .layout { grid-template-columns: 1fr; }
+  .bot-bar { position: fixed; left: 0; right: 0; max-width: 100%; }
+}
 </style>
 </head>
 <body>
-<h1>⚔ DevelopYourself</h1>
-<p class="subtitle">Dein Leben. Dein Charakter.</p>
+
+<p class="app-title">Nomad</p>
 
 <div class="layout">
-  <!-- LEFT: Avatar -->
+  <!-- LEFT PANEL -->
   <div class="panel">
+    <!-- Avatar -->
     <div class="av-header">
-      <div class="av-icon" id="avatarIcon">🧙</div>
-      <div style="flex:1">
+      <div class="av-icon" id="avatarIcon">
+        <i data-lucide="user-round"></i>
+      </div>
+      <div class="av-meta">
         <div class="av-name">Wanderer</div>
         <div class="av-level" id="avatarLevel">Level 1 · 0/50 XP</div>
-        <div class="bar-bg"><div class="bar-fill xp-fill" id="xpBar" style="width:0%"></div></div>
+        <div class="xp-track"><div class="xp-fill" id="xpBar" style="width:0%"></div></div>
       </div>
     </div>
 
-    <div class="sl">Eigenschaften</div>
-    <div class="sr"><span class="si">💪</span><span class="sn">Kraft</span><div class="sb"><div class="sf" id="bar-strength" style="width:0%;background:linear-gradient(90deg,#7f1d1d,#ef4444)"></div></div><span class="sv" id="val-strength">0</span></div>
-    <div class="sr"><span class="si">📚</span><span class="sn">Wissen</span><div class="sb"><div class="sf" id="bar-knowledge" style="width:0%;background:linear-gradient(90deg,#1e3a5f,#3b82f6)"></div></div><span class="sv" id="val-knowledge">0</span></div>
-    <div class="sr"><span class="si">🏃</span><span class="sn">Ausdauer</span><div class="sb"><div class="sf" id="bar-endurance" style="width:0%;background:linear-gradient(90deg,#14532d,#22c55e)"></div></div><span class="sv" id="val-endurance">0</span></div>
-    <div class="sr"><span class="si">🤝</span><span class="sn">Soziales</span><div class="sb"><div class="sf" id="bar-social" style="width:0%;background:linear-gradient(90deg,#4c1d95,#a855f7)"></div></div><span class="sv" id="val-social">0</span></div>
-    <div class="sr"><span class="si">🎨</span><span class="sn">Kreativität</span><div class="sb"><div class="sf" id="bar-creativity" style="width:0%;background:linear-gradient(90deg,#78350f,#f59e0b)"></div></div><span class="sv" id="val-creativity">0</span></div>
-    <div class="sr"><span class="si">🧘</span><span class="sn">Achtsamkeit</span><div class="sb"><div class="sf" id="bar-mindfulness" style="width:0%;background:linear-gradient(90deg,#155e75,#06b6d4)"></div></div><span class="sv" id="val-mindfulness">0</span></div>
+    <!-- Stats -->
+    <div class="section-label"><i data-lucide="activity"></i> Eigenschaften</div>
 
-    <hr class="d">
-    <div class="sl">🏷 Charakterzüge</div>
-    <div class="trait-list" id="traitList"><span style="font-size:.62rem;color:var(--muted)">Noch keine.</span></div>
+    <div class="stat-row">
+      <div class="stat-icon str"><i data-lucide="dumbbell"></i></div>
+      <span class="stat-name">Kraft</span>
+      <div class="stat-track"><div class="stat-fill str" id="bar-strength" style="width:0%"></div></div>
+      <span class="stat-val" id="val-strength">0</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-icon kno"><i data-lucide="book-open"></i></div>
+      <span class="stat-name">Wissen</span>
+      <div class="stat-track"><div class="stat-fill kno" id="bar-knowledge" style="width:0%"></div></div>
+      <span class="stat-val" id="val-knowledge">0</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-icon end"><i data-lucide="activity"></i></div>
+      <span class="stat-name">Ausdauer</span>
+      <div class="stat-track"><div class="stat-fill end" id="bar-endurance" style="width:0%"></div></div>
+      <span class="stat-val" id="val-endurance">0</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-icon soc"><i data-lucide="users"></i></div>
+      <span class="stat-name">Soziales</span>
+      <div class="stat-track"><div class="stat-fill soc" id="bar-social" style="width:0%"></div></div>
+      <span class="stat-val" id="val-social">0</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-icon cre"><i data-lucide="palette"></i></div>
+      <span class="stat-name">Kreativität</span>
+      <div class="stat-track"><div class="stat-fill cre" id="bar-creativity" style="width:0%"></div></div>
+      <span class="stat-val" id="val-creativity">0</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-icon min"><i data-lucide="leaf"></i></div>
+      <span class="stat-name">Achtsamkeit</span>
+      <div class="stat-track"><div class="stat-fill min" id="bar-mindfulness" style="width:0%"></div></div>
+      <span class="stat-val" id="val-mindfulness">0</span>
+    </div>
 
-    <hr class="d">
-    <div class="sl">🐾 Begleiter <span style="color:var(--muted);font-size:.56rem">(<span id="ownedSm">0</span>/41 · max 3 aktiv)</span></div>
+    <hr class="divider">
+
+    <!-- Traits -->
+    <div class="section-label"><i data-lucide="tag"></i> Charakterzüge</div>
+    <div class="trait-list" id="traitList">
+      <span style="font-size:.61rem;color:var(--muted)">Noch keine.</span>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Companions -->
+    <div class="section-label">
+      <i data-lucide="paw-print"></i> Begleiter
+      <span style="color:var(--muted);font-size:.56rem;margin-left:auto">
+        <span id="ownedSm">0</span>/41 · max 3 aktiv
+      </span>
+    </div>
     <div class="comp-slots" id="compSlots"></div>
-    <button class="gps-btn" style="margin-top:6px;font-size:.66rem" onclick="openCollection()">🗂 Sammlung öffnen</button>
+    <button class="coll-open-btn" onclick="openCollection()">
+      <i data-lucide="gem"></i> Sammlung öffnen
+    </button>
 
-    <hr class="d">
-    <div class="sl">⚗️ Artefakte <span style="color:var(--muted);font-size:.56rem">(<span id="artSm">0</span> · stackbar bis ×10)</span></div>
-    <div class="art-grid" id="artGrid"><span style="font-size:.62rem;color:var(--muted)">Noch keine gefunden.</span></div>
+    <hr class="divider">
 
-    <hr class="d">
-    <div class="sl">🌍 Sprachen</div>
+    <!-- Artifacts -->
+    <div class="section-label">
+      <i data-lucide="gem"></i> Artefakte
+      <span style="color:var(--muted);font-size:.56rem;margin-left:auto">
+        <span id="artSm">0</span> · stackbar ×10
+      </span>
+    </div>
+    <div class="art-grid" id="artGrid">
+      <span style="font-size:.61rem;color:var(--muted)">Noch keine gefunden.</span>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Languages -->
+    <div class="section-label"><i data-lucide="globe"></i> Sprachen</div>
     <div class="lang-list">
       <div class="lang-tag known">🇩🇪 Deutsch</div>
       <div class="lang-tag" id="lang-en">🇬🇧 Englisch</div>
@@ -278,70 +918,136 @@ hr.d { border:none; border-top:1px solid var(--border); margin:10px 0; }
     </div>
   </div>
 
-  <!-- RIGHT -->
+  <!-- RIGHT COLUMN -->
   <div class="right-col">
     <div class="panel">
-      <div class="sl">📍 Wo bist du?</div>
-      <button class="gps-btn" id="gpsBtn">📡 Echten Standort scannen (OpenStreetMap)</button>
+      <!-- GPS -->
+      <div class="section-label"><i data-lucide="navigation"></i> Wo bist du?</div>
+      <button class="gps-btn" id="gpsBtn">
+        <i data-lucide="navigation"></i>
+        Echten Standort scannen (OpenStreetMap)
+      </button>
       <div class="gps-status" id="gpsStatus">– GPS → erkennt Orte in 250m Umkreis –</div>
       <div class="gps-loc-suggestions" id="gpsLocSuggestions"></div>
-      <div id="idleWrap" style="display:none;margin-bottom:9px">
+
+      <!-- Idle running panel -->
+      <div id="idleWrap">
         <div class="idle-panel">
-          <div class="idle-loc" id="idleLocName">⏳</div>
-          <div class="idle-bar-bg"><div class="idle-bar-fill" id="idleBar" style="width:0%"></div></div>
+          <div class="idle-loc" id="idleLocName">…</div>
+          <div class="idle-track"><div class="idle-fill" id="idleBar" style="width:0%"></div></div>
           <div class="idle-timer" id="idleTimer">–</div>
           <button class="idle-cancel" onclick="cancelIdle()">✕ Abbrechen (50% Belohnung)</button>
         </div>
       </div>
+
+      <!-- Location grid -->
       <div class="loc-grid">
-        <button class="loc-btn" data-loc="gym"        onclick="clickLoc('gym')">       <span class="li">🏋️</span><span class="ln">Fitnessstudio</span><span class="ls">Kraft · Ausdauer</span></button>
-        <button class="loc-btn" data-loc="library"    onclick="clickLoc('library')">   <span class="li">📚</span><span class="ln">Bibliothek</span><span class="ls">Wissen</span></button>
-        <button class="loc-btn" data-loc="park"       onclick="clickLoc('park')">      <span class="li">🌳</span><span class="ln">Park</span><span class="ls">Ausdauer · Achtsamkeit</span></button>
-        <button class="loc-btn" data-loc="cafe"       onclick="clickLoc('cafe')">      <span class="li">☕</span><span class="ln">Café</span><span class="ls">Soziales · Kreativ</span></button>
-        <button class="loc-btn" data-loc="museum"     onclick="clickLoc('museum')">    <span class="li">🏛️</span><span class="ln">Museum</span><span class="ls">Wissen · Kreativ</span></button>
-        <button class="loc-btn" data-loc="airport"    onclick="clickLoc('airport')">   <span class="li">✈️</span><span class="ln">Flughafen</span><span class="ls">Ausdauer · Soziales</span></button>
-        <button class="loc-btn" data-loc="restaurant" onclick="clickLoc('restaurant')"><span class="li">🍽️</span><span class="ln">Restaurant</span><span class="ls">Soziales · Kreativ</span></button>
-        <button class="loc-btn" data-loc="temple"     onclick="clickLoc('temple')">    <span class="li">🕌</span><span class="ln">Tempel</span><span class="ls">Achtsamkeit · Wissen</span></button>
-        <button class="loc-btn" data-loc="university" onclick="clickLoc('university')"><span class="li">🎓</span><span class="ln">Universität</span><span class="ls">Wissen · Soziales</span></button>
+        <button class="loc-btn" data-loc="gym" onclick="clickLoc('gym')">
+          <div class="loc-icon-wrap"><i data-lucide="dumbbell"></i></div>
+          <span class="loc-name">Fitnessstudio</span>
+          <span class="loc-stats">Kraft · Ausdauer</span>
+        </button>
+        <button class="loc-btn" data-loc="library" onclick="clickLoc('library')">
+          <div class="loc-icon-wrap"><i data-lucide="book-open"></i></div>
+          <span class="loc-name">Bibliothek</span>
+          <span class="loc-stats">Wissen</span>
+        </button>
+        <button class="loc-btn" data-loc="park" onclick="clickLoc('park')">
+          <div class="loc-icon-wrap"><i data-lucide="tree-pine"></i></div>
+          <span class="loc-name">Park</span>
+          <span class="loc-stats">Ausdauer · Achtsamkeit</span>
+        </button>
+        <button class="loc-btn" data-loc="cafe" onclick="clickLoc('cafe')">
+          <div class="loc-icon-wrap"><i data-lucide="coffee"></i></div>
+          <span class="loc-name">Café</span>
+          <span class="loc-stats">Soziales · Kreativ</span>
+        </button>
+        <button class="loc-btn" data-loc="museum" onclick="clickLoc('museum')">
+          <div class="loc-icon-wrap"><i data-lucide="landmark"></i></div>
+          <span class="loc-name">Museum</span>
+          <span class="loc-stats">Wissen · Kreativ</span>
+        </button>
+        <button class="loc-btn" data-loc="airport" onclick="clickLoc('airport')">
+          <div class="loc-icon-wrap"><i data-lucide="plane"></i></div>
+          <span class="loc-name">Flughafen</span>
+          <span class="loc-stats">Ausdauer · Soziales</span>
+        </button>
+        <button class="loc-btn" data-loc="restaurant" onclick="clickLoc('restaurant')">
+          <div class="loc-icon-wrap"><i data-lucide="utensils"></i></div>
+          <span class="loc-name">Restaurant</span>
+          <span class="loc-stats">Soziales · Kreativ</span>
+        </button>
+        <button class="loc-btn" data-loc="temple" onclick="clickLoc('temple')">
+          <div class="loc-icon-wrap"><i data-lucide="church"></i></div>
+          <span class="loc-name">Tempel</span>
+          <span class="loc-stats">Achtsamkeit · Wissen</span>
+        </button>
+        <button class="loc-btn" data-loc="university" onclick="clickLoc('university')">
+          <div class="loc-icon-wrap"><i data-lucide="graduation-cap"></i></div>
+          <span class="loc-name">Universität</span>
+          <span class="loc-stats">Wissen · Soziales</span>
+        </button>
       </div>
     </div>
+
+    <!-- Log -->
     <div class="log-panel">
-      <div class="sl">📜 Erlebnisse</div>
+      <div class="section-label"><i data-lucide="scroll-text"></i> Erlebnisse</div>
       <ul class="log-list" id="logList">
-        <li class="log-item"><span>🌟</span><span>Dein Abenteuer beginnt. Wähle einen Ort und starte eine Idle-Session.</span></li>
+        <li class="log-item">
+          <span style="flex-shrink:0">🌟</span>
+          <span>Dein Abenteuer beginnt. Wähle einen Ort und starte eine Idle-Session.</span>
+        </li>
       </ul>
     </div>
   </div>
 </div>
 
+<!-- BOTTOM TAB BAR -->
 <div class="bot-bar">
-  <button class="bot-btn" onclick="openDungeons()"><span>⚔️</span>Dungeons</button>
-  <button class="bot-btn" onclick="openCollection()"><span>🐾</span>Begleiter</button>
-  <button class="bot-btn" onclick="openFriends()"><span>👥</span>Freunde <span class="badge" id="friendBadge" style="display:none">!</span></button>
-  <button class="bot-btn" onclick="openMarket()"><span>🏪</span>Marktplatz</button>
+  <button class="bot-tab" onclick="openDungeons()">
+    <i data-lucide="swords"></i>
+    Dungeons
+  </button>
+  <button class="bot-tab" onclick="openCollection()">
+    <i data-lucide="paw-print"></i>
+    Begleiter
+  </button>
+  <button class="bot-tab" onclick="openFriends()">
+    <i data-lucide="users"></i>
+    Freunde
+    <span class="badge" id="friendBadge" style="display:none">!</span>
+  </button>
+  <button class="bot-tab" onclick="openMarket()">
+    <i data-lucide="store"></i>
+    Marktplatz
+  </button>
 </div>
 
-<!-- IDLE CHOOSE -->
+<!-- IDLE CHOOSE OVERLAY -->
 <div class="overlay hidden" id="idleChooseOv">
   <div class="idle-choose">
     <div class="ic-title" id="icTitle">Ort</div>
     <div class="ic-sub">Dein Charakter idlet dort.<br>Du kannst dich frei bewegen – er bleibt.</div>
     <div class="ic-times" id="icTimes"></div>
-    <button class="ic-cancel" onclick="close('idleChooseOv')">Abbrechen</button>
+    <button class="ic-cancel" onclick="hidePanel('idleChooseOv')">Abbrechen</button>
   </div>
 </div>
 
-<!-- EVENT -->
+<!-- EVENT OVERLAY -->
 <div class="overlay hidden" id="eventOv">
   <div class="event-card">
-    <div class="ev-meta"><span id="evIcon" style="font-size:1.2rem"></span><span class="ev-lb" id="evLoc"></span></div>
+    <div class="ev-meta">
+      <span id="evIcon" style="font-size:1.2rem"></span>
+      <span class="ev-label" id="evLoc"></span>
+    </div>
     <div class="ev-title" id="evTitle"></div>
     <div class="ev-text" id="evText"></div>
     <div id="evOpts"></div>
   </div>
 </div>
 
-<!-- OUTCOME -->
+<!-- OUTCOME OVERLAY -->
 <div class="overlay hidden" id="outcomeOv">
   <div class="outcome-card">
     <div class="out-text" id="outText"></div>
@@ -350,62 +1056,66 @@ hr.d { border:none; border-top:1px solid var(--border); margin:10px 0; }
   </div>
 </div>
 
-<!-- COLLECTION -->
+<!-- COLLECTION OVERLAY -->
 <div class="overlay hidden" id="collOv" onclick="bgClose(event,'collOv')">
   <div class="big-modal">
     <div class="modal-hdr">
-      <div class="modal-title">🐾 Begleiter (<span id="collCount">0</span>/41)</div>
-      <button class="modal-close" onclick="close('collOv')">✕</button>
+      <div class="modal-title">Begleiter (<span id="collCount">0</span>/41)</div>
+      <button class="modal-close" onclick="hidePanel('collOv')">✕</button>
     </div>
-    <div style="font-size:.65rem;color:var(--muted);margin-bottom:10px">Aktiv: <span id="activeCount">0</span>/3 · Klick = aktivieren/deaktivieren · Begleiter nicht stackbar</div>
+    <div style="font-size:.64rem;color:var(--muted);margin-bottom:11px">
+      Aktiv: <span id="activeCount">0</span>/3 · Klick = aktivieren/deaktivieren · Begleiter nicht stackbar
+    </div>
     <div id="collContent"></div>
   </div>
 </div>
 
-<!-- DUNGEONS -->
+<!-- DUNGEONS OVERLAY -->
 <div class="overlay hidden" id="dungOv" onclick="bgClose(event,'dungOv')">
   <div class="dung-modal">
     <div class="modal-hdr">
-      <div class="modal-title">⚔️ Dungeons</div>
-      <button class="modal-close" onclick="close('dungOv')">✕</button>
+      <div class="modal-title">Dungeons</div>
+      <button class="modal-close" onclick="hidePanel('dungOv')">✕</button>
     </div>
-    <div style="font-size:.68rem;color:var(--muted);margin-bottom:12px">Idle-Kampf. Keine Eingabe. Stats = Siegchance.</div>
+    <div style="font-size:.67rem;color:var(--muted);margin-bottom:13px">Idle-Kampf. Keine Eingabe. Stats = Siegchance.</div>
     <div id="dungList"></div>
   </div>
 </div>
 
-<!-- FRIENDS -->
+<!-- FRIENDS OVERLAY -->
 <div class="overlay hidden" id="friendsOv" onclick="bgClose(event,'friendsOv')">
   <div class="friends-modal">
     <div class="modal-hdr">
-      <div class="modal-title">👥 Freunde & Nähe</div>
-      <button class="modal-close" onclick="close('friendsOv')">✕</button>
+      <div class="modal-title">Freunde &amp; Nähe</div>
+      <button class="modal-close" onclick="hidePanel('friendsOv')">✕</button>
     </div>
-    <div style="font-size:.68rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
+    <div style="font-size:.67rem;color:var(--muted);margin-bottom:14px;line-height:1.65">
       Je länger du neben jemandem mit der App stehst, desto höher die Freundschaftschance.<br>
       App muss nicht offen sein. Freunde können dir Sprachen beibringen.
     </div>
     <div class="friend-section">
-      <div class="sl">Spieler in der Nähe (simuliert)</div>
+      <div class="section-label" style="margin-top:0"><i data-lucide="users"></i> Spieler in der Nähe (simuliert)</div>
       <div id="nearbyList"></div>
     </div>
     <div class="friend-section">
-      <div class="sl">Deine Freunde (<span id="friendCount">0</span>)</div>
-      <div id="friendList"><span style="font-size:.68rem;color:var(--muted)">Noch keine Freundschaften geknüpft.</span></div>
+      <div class="section-label"><i data-lucide="users"></i> Deine Freunde (<span id="friendCount">0</span>)</div>
+      <div id="friendList">
+        <span style="font-size:.67rem;color:var(--muted)">Noch keine Freundschaften geknüpft.</span>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MARKET -->
+<!-- MARKET OVERLAY -->
 <div class="overlay hidden" id="marketOv" onclick="bgClose(event,'marketOv')">
   <div class="dung-modal">
     <div class="modal-hdr">
-      <div class="modal-title">🏪 Marktplatz</div>
-      <button class="modal-close" onclick="close('marketOv')">✕</button>
+      <div class="modal-title">Marktplatz</div>
+      <button class="modal-close" onclick="hidePanel('marketOv')">✕</button>
     </div>
-    <div style="font-size:.78rem;color:var(--muted);line-height:1.8;padding:11px;background:var(--card);border-radius:9px">
-      <div style="color:var(--gold);font-weight:600;margin-bottom:7px">🚧 Kommt mit Backend</div>
-      • Begleiter & Artefakte zwischen Spielern handelbar<br>
+    <div style="font-size:.77rem;color:var(--muted);line-height:1.85;padding:12px;background:var(--s2);border-radius:10px">
+      <div style="color:var(--gold);font-weight:600;margin-bottom:8px">Kommt mit Backend</div>
+      • Begleiter &amp; Artefakte zwischen Spielern handelbar<br>
       • Zahlung in Schattengold (In-Game) oder € direkt<br>
       • Plattform-Provision: 12%<br>
       • Nur gefundene Items handelbar — keine pay-to-win Packs<br>
@@ -642,11 +1352,12 @@ function clickLoc(locId) {
   const c = document.getElementById('icTimes'); c.innerHTML='';
   IDLE_TIMES.forEach((t,i) => {
     const b=document.createElement('button'); b.className='ic-time-btn';
-    b.innerHTML=`<div class="dur">${t.label}</div><div class="rew">${t.reward}</div><div style="font-size:.52rem;color:var(--muted);margin-top:2px">⚡ ${t.testLabel} (Prototype)</div>`;
-    b.onclick=()=>{ close('idleChooseOv'); startIdle(locId,i); };
+    b.innerHTML=`<span class="ic-dur">${t.label}</span><span class="ic-rew">${t.reward}</span><span class="ic-proto"><i data-lucide="zap"></i> ${t.testLabel} (Prototype)</span>`;
+    b.onclick=()=>{ hidePanel('idleChooseOv'); startIdle(locId,i); };
     c.appendChild(b);
   });
   document.getElementById('idleChooseOv').classList.remove('hidden');
+  lucide.createIcons();
 }
 
 function startIdle(locId, ti) {
@@ -807,7 +1518,7 @@ function renderDungeons(){
   // Header: reset info
   const today=new Date(); const resetStr=`${String(today.getHours()).padStart(2,'0')}:${String(today.getMinutes()).padStart(2,'0')}`;
   const hdr=document.createElement('div');
-  hdr.style.cssText='font-size:.6rem;color:var(--muted);margin-bottom:10px;padding:6px 8px;background:var(--card);border-radius:7px;line-height:1.6';
+  hdr.style.cssText='font-size:.6rem;color:var(--muted);margin-bottom:10px;padding:6px 8px;background:var(--s2);border-radius:7px;line-height:1.6';
   hdr.innerHTML=`🗓️ Positionen heute täglich zufällig. Nächste Rotation: <strong style="color:var(--gold)">Mitternacht</strong><br>📍 Dein aktueller Ort: <strong style="color:var(--gold)">${S.lastLoc?LOCS[S.lastLoc].icon+' '+LOCS[S.lastLoc].name:'<span style="color:var(--red)">Noch kein Ort besucht</span>'}</strong>`;
   l.appendChild(hdr);
   DUNGEONS.forEach(d=>{
@@ -843,7 +1554,7 @@ function enterDungeon(d){
   S.dungeons.push({id:d.id,end:Date.now()+d.ms});
   addLog(d.icon,`Dungeon: <span class="lg">${d.name}</span> – Charakter kämpft idle…`);
   toast(`⚔️ ${d.name} – Idle-Kampf läuft!`);
-  close('dungOv');
+  hidePanel('dungOv');
   setTimeout(()=>resolveDungeon(d),d.ms);
 }
 function resolveDungeon(d){
@@ -892,7 +1603,7 @@ function showEv(ev){
   document.getElementById('eventOv').classList.remove('hidden');
 }
 function chooseOpt(i){
-  close('eventOv');
+  hidePanel('eventOv');
   const o=curEv.options[i], out=wPick(o.outcomes), chips=[];
   for(const[k,v] of Object.entries(out.fx||{})){
     const b=S.stats[k]; S.stats[k]=Math.max(0,Math.min(STAT_MAX,S.stats[k]+v));
@@ -944,7 +1655,7 @@ function showOutcome(text,chips){
   document.getElementById('outFx').innerHTML=chips.map(c=>`<span class="fx ${c.type}">${c.label}</span>`).join('');
   document.getElementById('outcomeOv').classList.remove('hidden');
 }
-function closeOutcome(){ close('outcomeOv'); updateEventIndicators(); }
+function closeOutcome(){ hidePanel('outcomeOv'); updateEventIndicators(); }
 
 function openMarket(){ document.getElementById('marketOv').classList.remove('hidden'); }
 
@@ -956,10 +1667,23 @@ function sl(k){ return{strength:'Kraft',knowledge:'Wissen',endurance:'Ausdauer',
 function fmtStat(v){ const r=parseFloat(v.toFixed(3)); return r===Math.floor(r)?String(r):r.toFixed(3).replace(/0+$/,''); }
 function addLog(icon,html){ const l=document.getElementById('logList'),li=document.createElement('li'); li.className='log-item fresh'; li.innerHTML=`<span style="flex-shrink:0">${icon}</span><span>${html}</span>`; l.insertBefore(li,l.firstChild); while(l.children.length>30)l.removeChild(l.lastChild); setTimeout(()=>li.classList.remove('fresh'),3000); }
 let tt; function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('show'),3400); }
-function close(id){ document.getElementById(id).classList.add('hidden'); }
-function bgClose(e,id){ if(e.target===document.getElementById(id)) close(id); }
+function hidePanel(id){ document.getElementById(id).classList.add('hidden'); }
+function bgClose(e,id){ if(e.target===document.getElementById(id)) hidePanel(id); }
 
 // ─── UI UPDATE ─────────────────────────────────────────────
+const LEVEL_COLORS = [
+  'linear-gradient(135deg,#3730a3,#1e1435)',
+  'linear-gradient(135deg,#1e40af,#1e1435)',
+  'linear-gradient(135deg,#065f46,#0c1a14)',
+  'linear-gradient(135deg,#7c2d12,#1a0a05)',
+  'linear-gradient(135deg,#4c1d95,#0d0a1e)',
+  'linear-gradient(135deg,#831843,#1a0510)',
+  'linear-gradient(135deg,#713f12,#1a0e03)',
+  'linear-gradient(135deg,#134e4a,#061212)',
+  'linear-gradient(135deg,#1e3a8a,#060c1e)',
+  'linear-gradient(135deg,#4a044e,#100512)',
+];
+
 function updateUI(){
   for(const k of Object.keys(S.stats)){
     document.getElementById('val-'+k).textContent=fmtStat(S.stats[k]);
@@ -968,11 +1692,13 @@ function updateUI(){
   const n=S.level*XP_PER_LEVEL;
   document.getElementById('xpBar').style.width=(S.xp/n*100)+'%';
   document.getElementById('avatarLevel').textContent=`Level ${S.level} · ${S.xp}/${n} XP`;
-  const icons=['🧙','⚔️','🛡️','🔮','👑','🌟','🔥','🌌','🐉','✨'];
-  document.getElementById('avatarIcon').textContent=icons[Math.min(S.level-1,icons.length-1)];
+
+  // Update avatar background color by level (don't touch the Lucide icon inside)
+  const av=document.getElementById('avatarIcon');
+  av.style.background=LEVEL_COLORS[Math.min(S.level-1,LEVEL_COLORS.length-1)];
 
   const tl=document.getElementById('traitList');
-  tl.innerHTML=S.traits.length?S.traits.map(t=>`<span class="tt">${t}</span>`).join(''):'<span style="font-size:.62rem;color:var(--muted)">Noch keine.</span>';
+  tl.innerHTML=S.traits.length?S.traits.map(t=>`<span class="trait-tag">${t}</span>`).join(''):'<span style="font-size:.61rem;color:var(--muted)">Noch keine.</span>';
 
   // Companion slots
   const cs=document.getElementById('compSlots'); cs.innerHTML='';
@@ -980,7 +1706,7 @@ function updateUI(){
     const id=S.active[i],c=id?CD[id]:null;
     const div=document.createElement('div'); div.className='comp-slot'+(c?` c-${c.r}`:'');
     div.onclick=openCollection;
-    div.innerHTML=c?`<span class="cs-icon">${c.i}</span><span class="cs-name">${c.n}</span>`:`<span class="cs-empty">+ Begleiter</span>`;
+    div.innerHTML=c?`<span class="cs-emoji">${c.i}</span><span class="cs-name">${c.n}</span>`:`<span class="cs-empty">+ Begleiter</span>`;
     cs.appendChild(div);
   }
   document.getElementById('ownedSm').textContent=S.owned.size;
@@ -990,7 +1716,7 @@ function updateUI(){
   const arts=Object.values(S.artifacts);
   ag.innerHTML=arts.length
     ?arts.map(a=>`<div class="art-chip ${a.r}" title="${Object.entries(a.b).map(([k,v])=>`+${v*a.count} ${sl(k)}`).join(', ')} total">${a.i} ${a.n}<span class="art-stack${a.count>=ART_MAX_STACK?' maxed':''}">×${a.count}</span></div>`).join('')
-    :'<span style="font-size:.62rem;color:var(--muted)">Noch keine.</span>';
+    :'<span style="font-size:.61rem;color:var(--muted)">Noch keine.</span>';
   document.getElementById('artSm').textContent=arts.length;
 
   // Languages
@@ -1055,10 +1781,10 @@ out body 40;`;
 
 function showGpsResults(locIds){
   const wrap=document.getElementById('gpsLocSuggestions'); wrap.innerHTML='';
-  if(!locIds.length){ wrap.innerHTML='<span style="font-size:.64rem;color:var(--muted)">Keine bekannten Orte in 250m Umkreis.</span>'; return; }
+  if(!locIds.length){ wrap.innerHTML='<span style="font-size:.63rem;color:var(--muted)">Keine bekannten Orte in 250m Umkreis.</span>'; return; }
   locIds.forEach(id=>{
     const loc=LOCS[id], btn=document.createElement('button');
-    btn.className='gps-loc-btn'; btn.innerHTML=`${loc.icon} ${loc.name}`;
+    btn.className='gps-loc-pill'; btn.innerHTML=`${loc.icon} ${loc.name}`;
     btn.onclick=()=>{ wrap.innerHTML=''; clickLoc(id); };
     wrap.appendChild(btn);
   });
@@ -1066,8 +1792,8 @@ function showGpsResults(locIds){
 
 document.getElementById('gpsBtn').addEventListener('click', async ()=>{
   const st=document.getElementById('gpsStatus');
-  if(!navigator.geolocation){st.textContent='❌ GPS nicht verfügbar.';return;}
-  st.textContent='📡 Standort wird ermittelt…';
+  if(!navigator.geolocation){st.textContent='GPS nicht verfügbar.';return;}
+  st.textContent='Standort wird ermittelt…';
   navigator.geolocation.getCurrentPosition(async p=>{
     const{latitude:lat,longitude:lng}=p.coords;
     st.textContent=`📍 ${lat.toFixed(4)}, ${lng.toFixed(4)} · Scanne Umgebung…`;
@@ -1080,15 +1806,15 @@ document.getElementById('gpsBtn').addEventListener('click', async ()=>{
         showGpsResults(found);
         addLog('📡',`GPS: <span class="lg">${found.map(id=>LOCS[id].name).join(', ')}</span> in der Nähe`);
       } else {
-        st.textContent='📍 Kein bekannter Ort in 250m Umkreis.';
+        st.textContent='Kein bekannter Ort in 250m Umkreis.';
       }
     } catch(e){
       // Overpass failed — don't lock locations, let player choose manually
-      st.textContent=`⚠️ Scan fehlgeschlagen (${e.message||'Netzwerk'}) – manuell wählen.`;
+      st.textContent=`Scan fehlgeschlagen (${e.message||'Netzwerk'}) – manuell wählen.`;
       console.error('Overpass scan failed:',e);
     }
   }, (err)=>{
-    st.textContent=err.code===1?'❌ GPS verweigert – Berechtigung erlauben.':'❌ GPS nicht verfügbar.';
+    st.textContent=err.code===1?'GPS verweigert – Berechtigung erlauben.':'GPS nicht verfügbar.';
   });
 });
 
@@ -1103,6 +1829,7 @@ function updateLocButtons(){
 }
 
 updateUI(); updateEventIndicators();
+lucide.createIcons();
 </script>
 </body>
 </html>
