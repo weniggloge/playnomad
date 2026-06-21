@@ -1211,6 +1211,12 @@ body.onboarding .bot-bar { pointer-events: none; opacity: .35; filter: grayscale
 </head>
 <body>
 
+<div id="storageWarn" style="display:none;position:sticky;top:0;z-index:3000;background:linear-gradient(135deg,#7a1020,#b01030);color:#fff;font-size:.7rem;line-height:1.5;padding:10px 14px;border-bottom:1px solid #ff3d6e;text-align:center">
+  ⚠️ <strong>In-App-Browser erkannt.</strong> Dein Fortschritt wird hier evtl. <u>nicht gespeichert</u>.<br>
+  Öffne <strong>playnomad.vercel.app</strong> direkt in Safari/Chrome (Menü „⋯" → „In Safari öffnen") und für dauerhaftes Speichern „Zum Home-Bildschirm".
+  <button onclick="document.getElementById('storageWarn').style.display='none'" style="display:block;margin:8px auto 0;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);border-radius:3px;color:#fff;font-size:.66rem;padding:4px 12px;cursor:pointer;font-family:inherit">Verstanden</button>
+</div>
+
 <p class="app-title">Nomad</p>
 
 <div class="layout">
@@ -1297,13 +1303,13 @@ body.onboarding .bot-bar { pointer-events: none; opacity: .35; filter: grayscale
 
     <hr class="divider">
 
-    <!-- Equipment -->
+    <!-- Equipment summary (full screen via Charakter tab) -->
     <div class="section-label">
       <i data-lucide="shield"></i> Ausrüstung
       <span style="color:var(--muted);font-size:.56rem;margin-left:auto"><span id="equipCount">0</span>/6 angelegt</span>
     </div>
-    <button class="coll-open-btn" onclick="openEquip()">
-      <i data-lucide="shield"></i> Ausrüstung öffnen
+    <button class="coll-open-btn" onclick="navTab(document.querySelector('.bot-tab'),'openEquip')">
+      <i data-lucide="shield"></i> Charakter & Ausrüstung
     </button>
 
     <hr class="divider">
@@ -1420,6 +1426,10 @@ body.onboarding .bot-bar { pointer-events: none; opacity: .35; filter: grayscale
 
 <!-- BOTTOM TAB BAR -->
 <div class="bot-bar">
+  <button class="bot-tab" onclick="navTab(this,'openEquip')">
+    <i data-lucide="shield"></i>
+    Charakter
+  </button>
   <button class="bot-tab" onclick="navTab(this,'openDungeons')">
     <i data-lucide="swords"></i>
     Dungeons
@@ -3244,10 +3254,10 @@ function hidePanel(id){ document.getElementById(id).classList.add('hidden'); }
 function bgClose(e,id){ const el=document.getElementById(id); if(el.classList.contains('locked')) return; if(e.target===el) hidePanel(id); }
 
 // Tab nav: switch directly between tabs without manually closing first
-const TAB_OVERLAYS=['dungOv','collOv','friendsOv','artOv','invOv','haendlerOv'];
+const TAB_OVERLAYS=['equipOv','dungOv','collOv','friendsOv','artOv','invOv','haendlerOv'];
 function closeAllOverlays(){ TAB_OVERLAYS.forEach(id=>document.getElementById(id)?.classList.add('hidden')); }
 function navTab(btn, fnName){
-  const ov=({openDungeons:'dungOv',openCollection:'collOv',openFriends:'friendsOv',openArtefakte:'artOv',openInventory:'invOv',openHaendler:'haendlerOv'})[fnName];
+  const ov=({openEquip:'equipOv',openDungeons:'dungOv',openCollection:'collOv',openFriends:'friendsOv',openArtefakte:'artOv',openInventory:'invOv',openHaendler:'haendlerOv'})[fnName];
   const alreadyOpen=ov && !document.getElementById(ov).classList.contains('hidden');
   closeAllOverlays();
   document.querySelectorAll('.bot-tab').forEach(b=>b.classList.remove('active'));
@@ -3497,6 +3507,19 @@ function resumeTimers(){
     if(d) setTimeout(()=>resolveDungeon(d), Math.max(0, dun.end-Date.now()));
   }
 }
+
+// Warn if running in an in-app browser (WhatsApp/Instagram/etc.) or if
+// localStorage isn't writable — both cause progress to "reset" each visit.
+(function(){
+  const ua=navigator.userAgent||'';
+  const inApp=/WhatsApp|Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|TikTok|Twitter|MicroMessenger/i.test(ua);
+  let lsOk=true;
+  try{ localStorage.setItem('__nomad_test','1'); localStorage.removeItem('__nomad_test'); }catch(e){ lsOk=false; }
+  if(inApp || !lsOk){
+    const w=document.getElementById('storageWarn');
+    if(w) w.style.display='block';
+  }
+})();
 
 // Apply saved mother tongue to language state
 loadState();
