@@ -1065,6 +1065,10 @@ hr.divider {
     Freunde
     <span class="badge" id="friendBadge" style="display:none">!</span>
   </button>
+  <button class="bot-tab" onclick="openArtefakte()">
+    <i data-lucide="gem"></i>
+    Artefakte
+  </button>
   <button class="bot-tab" onclick="openInventory()">
     <i data-lucide="backpack"></i>
     Tasche
@@ -1175,6 +1179,33 @@ hr.divider {
       </div>
     </div>
     <div id="invList"></div>
+  </div>
+</div>
+
+<!-- TRAIT INFO OVERLAY -->
+<div class="overlay hidden" id="traitInfoOv" onclick="bgClose(event,'traitInfoOv')">
+  <div class="outcome-card" style="text-align:left;min-width:260px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Charakterzug</div>
+      <button class="modal-close" onclick="hidePanel('traitInfoOv')">✕</button>
+    </div>
+    <div id="traitName" style="font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:6px"></div>
+    <div id="traitDesc" style="font-size:.73rem;color:var(--muted);margin-bottom:14px;line-height:1.6;font-style:italic"></div>
+    <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Permanente Boni</div>
+    <div id="traitBonus" style="font-size:.8rem;font-weight:600;color:#4ade80;margin-bottom:10px"></div>
+    <div id="traitConflict" style="font-size:.65rem;color:#f87171;min-height:1rem"></div>
+  </div>
+</div>
+
+<!-- ARTEFAKTE OVERLAY -->
+<div class="overlay hidden" id="artOv" onclick="bgClose(event,'artOv')">
+  <div class="big-modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Artefakte (<span id="artCount">0</span>/<span id="artTotal">0</span>)</div>
+      <button class="modal-close" onclick="hidePanel('artOv')">✕</button>
+    </div>
+    <div style="font-size:.64rem;color:var(--muted);margin-bottom:11px">Jedes Artefakt stapelbar ×10 · Boni werden pro Stack angewendet</div>
+    <div id="artCollContent"></div>
   </div>
 </div>
 
@@ -1597,7 +1628,51 @@ const EVENTS = [
      {text:'Ich gehe näher.',req:{},outcomes:[{w:50,text:'"Setz dich." Du gehst als Freund.',fx:{social:6,creativity:2},xp:12,trait:'Offen für Fremdes',comp:'fuchs'},{w:30,text:'Ihr 40. Hochzeitstag hier.',fx:{social:4,mindfulness:4},xp:10},{w:20,text:'Sie winken dich weg.',fx:{mindfulness:2},xp:3}]},
      {text:'Aus der Ferne.',req:{},outcomes:[{w:100,text:'Irgendetwas Wärmendes bleibt.',fx:{mindfulness:3,creativity:1},xp:4}]},
    ]},
+  // ── Unlearn events (require specific trait, narrative turning points) ──
+  {id:'ev_u1',locs:['airport'],traitReq:'Fernweh',icon:'✈️',loc_label:'Flughafen',title:'Der letzte Gate',
+   text:'Eine Frau im Wartebereich schaut dich an. "Bist du jemals wirklich angekommen?" Du hast keine Antwort.',
+   options:[
+     {text:'"Nein. Und das ist gut so."',req:{},outcomes:[{w:100,text:'Du weißt jetzt, wer du bist.',fx:{endurance:3,mindfulness:2},xp:8}]},
+     {text:'"Manchmal frage ich mich das."',req:{mindfulness:12},req_label:'Achtsamkeit 12',outcomes:[{w:100,text:'Du buchst kein Ticket. Du gehst zurück. Etwas zieht nach Hause.',fx:{mindfulness:5,social:3},xp:15,traitLose:'Fernweh',trait:'Verwurzelt'}]},
+   ]},
+  {id:'ev_u2',locs:['cafe'],traitReq:'Stiller Zeuge',icon:'☕',loc_label:'Café',title:'Das Wort das du nie sagst',
+   text:'Jemand wird laut ungerecht behandelt. Alle schauen weg. Du weißt, was du siehst – aber du schweigst.',
+   options:[
+     {text:'"Stopp."',req:{social:10},req_label:'Soziales 10',outcomes:[{w:100,text:'Der Raum hält kurz den Atem an. Dann dreht sich alles.',fx:{social:5,strength:3},xp:12,traitLose:'Stiller Zeuge',trait:'Stimme erhoben'}]},
+     {text:'Du schaust weg. Wieder.',req:{},outcomes:[{w:100,text:'Du wirst nicht vergessen, was du gesehen hast.',fx:{mindfulness:2},xp:3}]},
+   ]},
+  {id:'ev_u3',locs:['library'],traitReq:'Detektiv-Instinkt',icon:'📚',loc_label:'Bibliothek',title:'Der Preis des Wissens',
+   text:'Du hast etwas herausgefunden, das nicht für dich bestimmt war. Es betrifft jemanden, den du kennst.',
+   options:[
+     {text:'Ich vergesse es.',req:{mindfulness:15},req_label:'Achtsamkeit 15',outcomes:[{w:100,text:'Manche Wahrheiten zerstören mehr als sie heilen. Du lässt los.',fx:{mindfulness:6,knowledge:2},xp:14,traitLose:'Detektiv-Instinkt',trait:'Weiser Respekt'}]},
+     {text:'Ich teile es. Die Wahrheit verlangt es.',req:{knowledge:18},req_label:'Wissen 18',outcomes:[{w:60,text:'Es war das Richtige. Die Konsequenzen treffen trotzdem.',fx:{knowledge:4,social:-3},xp:10},{w:40,text:'Du hättest es nicht tun sollen.',fx:{social:-5,mindfulness:3},xp:5}]},
+   ]},
 ];
+
+// ─── TRAIT DATA (permanent bonuses + conflicts) ────────────
+const TRAIT_DATA = {
+  'Geduldiger Zuhörer':  {desc:'Du hörst zu, auch wenn andere schweigen.',     b:{social:3,mindfulness:2},  conflicts:['Pragmatisch']},
+  'Auserwählt':          {desc:'Etwas Altes hat dich berührt.',                 b:{knowledge:3,creativity:2},conflicts:[]},
+  'Stille Kraft':        {desc:'Deine Stärke kommt nicht von Worten.',          b:{mindfulness:3,strength:2}, conflicts:['Unbesiegbar']},
+  'Der/Die der weiterging':{desc:'Du hast gelernt, nicht zu bleiben.',          b:{endurance:3,strength:2},  conflicts:['Mitfühlend']},
+  'Unbesiegbar':         {desc:'Du weißt, dass du gewinnen kannst.',             b:{strength:4,endurance:2},  conflicts:['Stille Kraft','Würdevoll verloren']},
+  'Würdevoll verloren':  {desc:'Verlieren hat auch seine Würde.',               b:{strength:2,mindfulness:3}, conflicts:['Unbesiegbar']},
+  'Eigener Weg':         {desc:'Du folgst keiner Karte.',                        b:{endurance:2,creativity:2,knowledge:1},conflicts:[]},
+  'Mitfühlend':          {desc:'Andere Schmerzen fühlst du mit.',               b:{social:3,mindfulness:2},  conflicts:['Der/Die der weiterging','Pragmatisch']},
+  'Pragmatisch':         {desc:'Du siehst Lösungen, keine Emotionen.',          b:{knowledge:2,strength:2},  conflicts:['Mitfühlend','Geduldiger Zuhörer']},
+  'Stiller Zeuge':       {desc:'Du beobachtest, ohne einzugreifen.',            b:{mindfulness:3,knowledge:2},conflicts:['Offen für Fremdes']},
+  'Detektiv-Instinkt':  {desc:'Rätsel lassen dich nicht los.',                  b:{knowledge:4,endurance:1}, conflicts:[]},
+  'Verbindungsstifter':  {desc:'Du erkennst, was Menschen verbindet.',          b:{social:4,knowledge:2},    conflicts:[]},
+  'Weiser Respekt':      {desc:'Du weißt, wann Zurücktreten Stärke ist.',       b:{mindfulness:4,knowledge:2},conflicts:['Echter Wanderer']},
+  'Nomaden-Blut':        {desc:'Stillstand ist Rückstand.',                     b:{endurance:3,social:2,mindfulness:1},conflicts:['Verwurzelt']},
+  'Fernweh':             {desc:'Das Unbekannte zieht dich immer weiter.',       b:{endurance:3,creativity:3},conflicts:['Verwurzelt']},
+  'Echter Wanderer':     {desc:'Du lebst zwischen Horizonten.',                 b:{endurance:4,social:3,mindfulness:2},conflicts:['Weiser Respekt']},
+  'Spurensucher':        {desc:'Geschichte ist keine Vergangenheit.',           b:{knowledge:4,endurance:2}, conflicts:[]},
+  'Künstlerauge':        {desc:'Du siehst Schönheit in den Rissen.',            b:{creativity:5,knowledge:1},conflicts:[]},
+  'Offen für Fremdes':   {desc:'Das Unbekannte macht dir keine Angst.',         b:{social:4,creativity:2},   conflicts:['Stiller Zeuge']},
+  'Verwurzelt':          {desc:'Heimat ist kein Ort – sie ist ein Gefühl.',     b:{mindfulness:4,social:3},  conflicts:['Fernweh','Nomaden-Blut']},
+  'Stimme erhoben':      {desc:'Du weißt, wann Schweigen Mitschuld ist.',      b:{social:4,strength:2},     conflicts:['Stiller Zeuge']},
+};
 
 // ─── IDLE ─────────────────────────────────────────────────
 let idleIv = null;
@@ -1723,7 +1798,7 @@ function finishIdle(partial=false, ratio=1) {
   showOutcome(txt, chips);
 
   // Event after idle
-  const evAvail=EVENTS.filter(e=>e.locs.includes(idle.locId)&&!S.seen.has(e.id));
+  const evAvail=EVENTS.filter(e=>e.locs.includes(idle.locId)&&!S.seen.has(e.id)&&(!e.traitReq||S.traits.includes(e.traitReq)));
   if(!partial&&evAvail.length&&Math.random()<0.7) setTimeout(()=>showEv(evAvail[Math.floor(Math.random()*evAvail.length)]),1800);
   updateEventIndicators();
 }
@@ -1941,7 +2016,8 @@ function chooseOpt(i){
     const a=S.stats[k]-b; if(a!==0) chips.push({label:`${a>0?'+':''}${a} ${sl(k)}`,type:a>=0?'pos':'neg'});
   }
   if(out.xp) addXP(out.xp);
-  if(out.trait&&!S.traits.includes(out.trait)){ S.traits.push(out.trait); chips.push({label:out.trait,type:'trait'}); }
+  if(out.traitLose){ loseTrait(out.traitLose); chips.push({label:`✗ ${out.traitLose}`,type:'neg'}); }
+  if(out.trait){ if(gainTrait(out.trait)) chips.push({label:out.trait,type:'trait'}); }
   if(out.comp&&!S.owned.has(out.comp)){ S.owned.add(out.comp); const c=CD[out.comp]; chips.push({label:`${c.i} ${c.n}`,type:'comp'}); }
   if(out.art){ const a=ART[out.art]; if(a){ const ex=S.artifacts[out.art]; if(!ex||ex.count<ART_MAX_STACK){ if(ex)ex.count++;else S.artifacts[out.art]={count:1,...a}; for(const[k,v] of Object.entries(a.b))S.stats[k]=Math.min(STAT_MAX,S.stats[k]+v); chips.push({label:`${a.i} ${a.n}`,type:'art'}); } } }
   if(out.lang){ S.languages[out.lang]=true; chips.push({label:'Sprache gelernt',type:'pos'}); }
@@ -1989,6 +2065,32 @@ function showOutcome(text,chips){
 function closeOutcome(){ hidePanel('outcomeOv'); updateEventIndicators(); }
 
 function openHaendlerOrInventory(){ openHaendler(); } // legacy alias
+
+function openArtefakte(){ renderArtefakte(); document.getElementById('artOv').classList.remove('hidden'); }
+function renderArtefakte(){
+  const order={legendary:0,epic:1,uncommon:2,common:3};
+  const all=Object.entries(ART).sort((a,b)=>order[a[1].r]-order[b[1].r]);
+  const owned=Object.keys(S.artifacts);
+  document.getElementById('artCount').textContent=owned.length;
+  document.getElementById('artTotal').textContent=all.length;
+  document.getElementById('artCollContent').innerHTML=all.map(([id,a])=>{
+    const stack=S.artifacts[id];
+    const cnt=stack?stack.count:0;
+    const locked=!stack;
+    const maxed=cnt>=ART_MAX_STACK;
+    const totalBonus=Object.entries(a.b).map(([k,v])=>`+${v*Math.max(1,cnt)} ${sl(k)}`).join(' · ');
+    const baseBonus=Object.entries(a.b).map(([k,v])=>`+${v} ${sl(k)}`).join(' · ');
+    return `<div class="cc ${a.r} ${locked?'locked':'owned'}" style="opacity:${locked?.45:1}">
+      <div class="rb"></div>
+      <div class="cc-rl">${a.r}</div>
+      <div class="cc-ic">${a.i}</div>
+      <div class="cc-nm">${a.n}</div>
+      ${!locked?`<div style="font-size:.68rem;font-weight:700;color:var(--gold);margin:3px 0">×${cnt}/10${maxed?' 🔥':''}</div>`:''}
+      <div class="cc-bn">${locked?baseBonus+' pro Stack':totalBonus+' gesamt'}</div>
+      ${locked?`<div class="cc-rq">Noch nicht gefunden</div>`:''}
+    </div>`;
+  }).join('');
+}
 
 function devBoost(){
   S.level=15; S.xp=0;
@@ -2116,6 +2218,37 @@ function addXP(n){
   }
 }
 function sl(k){ return{strength:'Kraft',knowledge:'Wissen',endurance:'Ausdauer',social:'Soziales',creativity:'Kreativität',mindfulness:'Achtsamkeit'}[k]||k; }
+
+function gainTrait(name){
+  if(S.traits.includes(name)) return false;
+  if(S.traits.length>=10){ toast('⚡ Max. 10 Charakterzüge erreicht.'); return false; }
+  const td=TRAIT_DATA[name];
+  if(td){
+    for(const c of (td.conflicts||[])){
+      if(S.traits.includes(c)){ toast(`⚡ "${name}" konfliktiert mit "${c}"`); return false; }
+    }
+    if(td.b) for(const[k,v] of Object.entries(td.b)) S.stats[k]=Math.min(STAT_MAX,S.stats[k]+v);
+  }
+  S.traits.push(name);
+  return true;
+}
+function loseTrait(name){
+  const idx=S.traits.indexOf(name); if(idx<0) return;
+  const td=TRAIT_DATA[name];
+  if(td?.b) for(const[k,v] of Object.entries(td.b)) S.stats[k]=Math.max(0,parseFloat((S.stats[k]-v).toFixed(3)));
+  S.traits.splice(idx,1);
+  addLog('💔',`Charakterzug verloren: <span class="lg">${name}</span>`);
+}
+function showTraitInfo(name){
+  const td=TRAIT_DATA[name]||{desc:'Kein Bonus definiert.',b:{}};
+  const bonus=Object.entries(td.b||{}).map(([k,v])=>`+${v} ${sl(k)}`).join(' · ')||'Kein Stat-Bonus';
+  const conflicts=(td.conflicts||[]).filter(c=>S.traits.includes(c));
+  document.getElementById('traitName').textContent=name;
+  document.getElementById('traitDesc').textContent=td.desc||'';
+  document.getElementById('traitBonus').textContent=bonus;
+  document.getElementById('traitConflict').textContent=conflicts.length?`Konflikt mit: ${conflicts.join(', ')}`:'';
+  document.getElementById('traitInfoOv').classList.remove('hidden');
+}
 function fmtStat(v){ const r=parseFloat(v.toFixed(3)); return r===Math.floor(r)?String(r):r.toFixed(3).replace(/0+$/,''); }
 function addLog(icon,html){ const l=document.getElementById('logList'),li=document.createElement('li'); li.className='log-item fresh'; li.innerHTML=`<span style="flex-shrink:0">${icon}</span><span>${html}</span>`; l.insertBefore(li,l.firstChild); while(l.children.length>30)l.removeChild(l.lastChild); setTimeout(()=>li.classList.remove('fresh'),3000); }
 let tt; function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('show'),3400); }
@@ -2153,7 +2286,7 @@ function updateUI(){
   av.style.background=LEVEL_COLORS[Math.min(S.level-1,LEVEL_COLORS.length-1)];
 
   const tl=document.getElementById('traitList');
-  tl.innerHTML=S.traits.length?S.traits.map(t=>`<span class="trait-tag">${t}</span>`).join(''):'<span style="font-size:.61rem;color:var(--muted)">Noch keine.</span>';
+  tl.innerHTML=S.traits.length?S.traits.map(t=>`<span class="trait-tag" onclick="showTraitInfo('${t.replace(/'/g,"\\'")}')" style="cursor:pointer">${t}</span>`).join(''):`<span style="font-size:.61rem;color:var(--muted)">Noch keine · max. 10.</span>`;
 
   // Companion slots
   const cs=document.getElementById('compSlots'); cs.innerHTML='';
