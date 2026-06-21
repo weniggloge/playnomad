@@ -1267,24 +1267,24 @@ hr.divider {
   <div class="big-modal" style="max-width:440px">
     <div class="modal-hdr">
       <div class="modal-title">Dein Charakter</div>
-      <button class="modal-close" onclick="hidePanel('profileOv')">✕</button>
+      <button class="modal-close" onclick="saveProfile();hidePanel('profileOv')">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:13px">
       <div class="pf-row">
         <label class="pf-label">Name</label>
-        <input class="pf-input" id="pf-name" type="text" placeholder="Dein Name" maxlength="32">
+        <input class="pf-input" id="pf-name" type="text" placeholder="Dein Name" maxlength="32" oninput="autoSaveProfile()">
       </div>
       <div class="pf-row">
         <label class="pf-label">Alter (real)</label>
-        <input class="pf-input" id="pf-age" type="number" placeholder="z.B. 24" min="1" max="120">
+        <input class="pf-input" id="pf-age" type="number" placeholder="z.B. 24" min="1" max="120" oninput="autoSaveProfile()">
       </div>
       <div class="pf-row">
         <label class="pf-label">Stadt</label>
-        <input class="pf-input" id="pf-city" type="text" placeholder="z.B. Wien" maxlength="64">
+        <input class="pf-input" id="pf-city" type="text" placeholder="z.B. Wien" maxlength="64" oninput="autoSaveProfile()">
       </div>
       <div class="pf-row">
         <label class="pf-label">Nationalität</label>
-        <select class="pf-input" id="pf-nation">
+        <select class="pf-input" id="pf-nation" onchange="autoSaveProfile()">
           <option value="">– wählen –</option>
           <optgroup label="DACH">
             <option value="🇦🇹 Österreich">🇦🇹 Österreich</option>
@@ -1349,7 +1349,7 @@ hr.divider {
           <label class="lang-radio"><input type="radio" name="pf-lang" value="ar"> 🇸🇦 Arabisch</label>
         </div>
       </div>
-      <button class="cont-btn" onclick="saveProfile()" style="margin-top:4px">Speichern</button>
+      <button class="cont-btn" onclick="saveProfile();hidePanel('profileOv')" style="margin-top:4px">Fertig</button>
       <button onclick="devBoost()" style="margin-top:8px;width:100%;padding:9px;background:none;border:1px dashed #374151;border-radius:10px;color:#6b7280;font-size:.68rem;cursor:pointer">🛠 Dev-Boost (Prototype Testing)</button>
     </div>
   </div>
@@ -1816,6 +1816,7 @@ function finishIdle(partial=false, ratio=1) {
   const evAvail=EVENTS.filter(e=>e.locs.includes(idle.locId)&&!S.seen.has(e.id)&&(!e.traitReq||S.traits.includes(e.traitReq)));
   if(!partial&&evAvail.length&&Math.random()<0.7) setTimeout(()=>showEv(evAvail[Math.floor(Math.random()*evAvail.length)]),1800);
   updateEventIndicators();
+  saveState();
 }
 
 // ─── PROXIMITY / FRIENDS ─────────────────────────────────
@@ -1886,15 +1887,14 @@ function saveProfile(){
   const city  = document.getElementById('pf-city').value.trim();
   const nat   = document.getElementById('pf-nation').value;
   const mtEl  = document.querySelector('input[name="pf-lang"]:checked');
-  const mt    = mtEl ? mtEl.value : 'de';
-  profileData = {name, age, city, nationality:nat, motherTongue:mt, mtLocked:true};
+  const mt    = mtEl ? mtEl.value : (profileData.motherTongue||'de');
+  profileData = {name, age, city, nationality:nat, motherTongue:mt, mtLocked:!!mt};
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profileData));
-  // Apply mother tongue — set it as known
   Object.keys(S.languages).forEach(k => S.languages[k] = (k===mt));
-  updateUI();
-  hidePanel('profileOv');
-  toast(`✓ Profil gespeichert`);
+  updateUI(); // also triggers saveState()
 }
+let pfSaveTimer;
+function autoSaveProfile(){ clearTimeout(pfSaveTimer); pfSaveTimer=setTimeout(saveProfile,600); }
 function renderProfileInfo(){
   document.getElementById('charName').textContent = profileData.name||'Wanderer';
   const parts=[];
@@ -2004,6 +2004,7 @@ function resolveDungeon(d){
   updateUI();
   showOutcome(ok?`⚔️ ${d.icon} ${d.name}\n\nSieg! Dein Charakter hat bestanden.`:`💀 ${d.icon} ${d.name}\n\nNiederlage – aber du findest etwas auf dem Rückweg.`,chips.length?chips:[{label:ok?'Sieg':'Rückzug',type:ok?'pos':'neg'}]);
   addLog(d.icon,`Dungeon ${ok?'✅':'❌'}: <span class="lg">${d.name}</span>`);
+  saveState();
 }
 
 // ─── EVENTS ───────────────────────────────────────────────
