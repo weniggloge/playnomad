@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>NOMAD</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,6 +39,8 @@ body {
   font-size: 14px;
   min-height: 100%;
   padding: 16px 16px 80px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── APP TITLE ── */
@@ -1909,7 +1911,7 @@ function renderFriends(){
   });
   const fl=document.getElementById('friendList');
   fl.innerHTML=S.friends.length
-    ?S.friends.map(f=>`<div class="friend-card"><div class="fc-icon">${f.icon}</div><div><div class="fc-name">${f.name}</div><div class="fc-lang">${f.flag} ${f.langName}</div><div class="fc-lang-learn">✨ Chance: Sprache beim nächsten Idle lernen</div></div></div>`).join('')
+    ?S.friends.map(f=>`<div class="friend-card"><div class="fc-icon">${f.icon}</div><div><div class="fc-name">${f.name}</div><div class="fc-lang">${f.flag} ${f.langName}</div>${S.languages[f.lang]?`<div class="fc-lang-learn" style="color:#4ade80">✓ Sprache bekannt</div>`:`<div class="fc-lang-learn" style="color:var(--muted)">Sprache noch unbekannt</div>`}</div></div>`).join('')
     :'<span style="font-size:.68rem;color:var(--muted)">Noch keine Freundschaften.</span>';
   document.getElementById('friendCount').textContent=S.friends.length;
 }
